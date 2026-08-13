@@ -1,0 +1,12 @@
+# Todo lo que no necesita el build: reduce el contexto enviado al daemon y
+# evita invalidar la caché de capas por cambios irrelevantes.
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md
+*_test.go
+bin/
+server
+server.exe
+*.out

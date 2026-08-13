@@ -1,0 +1,109 @@
+# Orquestación completa del desafío: las dos APIs y el frontend.
+#
+#   cp .env.example .env
+#   docker compose up --build
+#
+# El frontend queda en http://localhost:8081 y la API Go en http://localhost:8080.
+
+name: interseguro-challenge
+
+services:
+  # ---------------------------------------------------------------------------
+  # API de estadísticas (Node.js + Express)
+  # ---------------------------------------------------------------------------
+  api-node:
+    build:
+      context: ./api-node
+      args:
+        VERSION: ${VERSION:-1.0.0}
+    environment:
+      NODE_API_PORT: 3000
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # El secreto debe ser idéntico al de la API Go: es quien firma los tokens
+      # que este servicio verifica.
+      JWT_SECRET: ${JWT_SECRET:?definir JWT_SECRET en el archivo .env}
+      JWT_ISSUER: ${JWT_ISSUER:-interseguro-qr-api}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-interseguro-clients}
+      MAX_MATRIX_DIMENSION: ${MAX_MATRIX_DIMENSION:-256}
+    # No se publica ningún puerto al host: este servicio solo lo consume la API
+    # Go a través de la red interna. Exponerlo ampliaría la superficie de ataque
+    # sin ningún beneficio.
+    expose:
+      - "3000"
+    networks:
+      - interseguro
+    restart: unless-stopped
+    healthcheck:
+      # 127.0.0.1 explícito y no `localhost`: en Alpine, `localhost` resuelve
+      # primero a ::1, mientras que el servidor hace bind en 0.0.0.0, que es
+      # solo IPv4. El chequeo fallaría contra un servicio perfectamente sano.
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:3000/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # API de factorización QR (Go + Fiber)
+  # ---------------------------------------------------------------------------
+  api-go:
+    build:
+      context: ./api-go
+      args:
+        VERSION: ${VERSION:-1.0.0}
+    environment:
+      GO_API_PORT: 8080
+      # `api-node` es el nombre del servicio: Docker lo resuelve por DNS dentro
+      # de la red interna, sin necesidad de IPs fijas.
+      STATS_API_URL: http://api-node:3000
+      STATS_API_TIMEOUT_SECONDS: ${STATS_API_TIMEOUT_SECONDS:-5}
+      STATS_API_MAX_RETRIES: ${STATS_API_MAX_RETRIES:-1}
+      MAX_MATRIX_DIMENSION: ${MAX_MATRIX_DIMENSION:-256}
+      JWT_SECRET: ${JWT_SECRET:?definir JWT_SECRET en el archivo .env}
+      JWT_ISSUER: ${JWT_ISSUER:-interseguro-qr-api}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-interseguro-clients}
+      JWT_TTL_MINUTES: ${JWT_TTL_MINUTES:-15}
+      DEMO_USERNAME: ${DEMO_USERNAME:-demo}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?definir DEMO_PASSWORD en el archivo .env}
+    ports:
+      - "${GO_API_PORT:-8080}:8080"
+    depends_on:
+      api-node:
+        # Se espera a que el upstream esté sano, no solo iniciado: sin esta
+        # condición, los primeros requests fallarían con 502 durante el arranque.
+        condition: service_healthy
+    networks:
+      - interseguro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # Frontend (React + Vite, servido por nginx)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-8081}:80"
+    depends_on:
+      api-go:
+        condition: service_healthy
+    networks:
+      - interseguro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:80/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  interseguro:
+    driver: bridge

@@ -1,0 +1,25 @@
+# Entorno
+.env
+.env.local
+
+# Go
+api-go/bin/
+api-go/server
+api-go/server.exe
+*.test
+*.out
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+.npm/
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

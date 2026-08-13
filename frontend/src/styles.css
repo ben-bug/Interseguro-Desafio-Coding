@@ -1,0 +1,751 @@
+/* ==========================================================================
+   Sistema visual
+   --------------------------------------------------------------------------
+   La página se organiza alrededor de una sola idea: el resultado es la ecuación
+   A = Q · R, y se dibuja como tal. De ahí salen las dos decisiones de color y
+   tipografía: Q y R llevan acentos distintos porque son piezas distintas de la
+   descomposición, y todo lo numérico va en monoespaciada tabular porque la
+   alineación de las columnas es información, no estética.
+   ========================================================================== */
+
+:root {
+  --ink: #14161d;
+  --ink-soft: #565d70;
+  --ink-faint: #9096a6;
+
+  --paper: #f6f6f9;
+  --surface: #ffffff;
+  --line: #e3e4ea;
+  --grid-line: #ebebf1;
+
+  /* Los dos factores de la descomposición. Índigo y verde azulado difieren
+     tanto en tono como en luminosidad, de modo que siguen distinguiéndose sin
+     percepción del color. */
+  --q: #4b3ec4;
+  --r: #00736a;
+  --input: #6a7183;
+  --danger: #b0322a;
+
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  --font-sans: ui-sans-serif, system-ui, 'Segoe UI Variable Text', 'Segoe UI', Roboto, sans-serif;
+
+  --radius: 6px;
+  --shadow: 0 1px 2px rgb(20 22 29 / 6%), 0 8px 24px -16px rgb(20 22 29 / 30%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8e9ee;
+    --ink-soft: #a0a6b6;
+    --ink-faint: #6b7180;
+
+    --paper: #101219;
+    --surface: #171922;
+    --line: #272a35;
+    --grid-line: #1a1d26;
+
+    --q: #9b90ff;
+    --r: #3ecdbd;
+    --input: #8d94a6;
+    --danger: #ff8b80;
+
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px -16px rgb(0 0 0 / 80%);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* Retícula de fondo: la matriz es una grilla, y el papel de cálculo también. */
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--q);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Cabecera
+   -------------------------------------------------------------------------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.masthead__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+/* La marca es el propio nombre de la factorización, compuesto como una fórmula. */
+.masthead__mark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+}
+
+.masthead__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  /* El tracking cerrado saca a la monoespaciada de su lectura de terminal y la
+     convierte en una tipografía de titular. */
+  letter-spacing: -0.035em;
+}
+
+.masthead__subtitle {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   Estructura
+   -------------------------------------------------------------------------- */
+
+.shell {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.panel {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.panel--input {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.panel__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Editor de la matriz
+   -------------------------------------------------------------------------- */
+
+.editor {
+  display: grid;
+  gap: 1rem;
+}
+
+.editor__dims {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.editor__times {
+  padding-bottom: 0.5rem;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.field__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.field__input {
+  width: 5rem;
+  padding: 0.45rem 0.6rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.field__input--wide {
+  width: 100%;
+}
+
+.editor__grid {
+  display: grid;
+  gap: 3px;
+}
+
+.editor__cell {
+  min-width: 0;
+  padding: 0.4rem 0.35rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.editor__cell:hover:not(:disabled) {
+  border-color: var(--ink-faint);
+}
+
+.editor__examples {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.editor__examples-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.editor__examples-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  padding: 0.3rem 0.6rem;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chip:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Controles
+   -------------------------------------------------------------------------- */
+
+.controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.segmented__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.segmented__option + .segmented__option {
+  margin-left: 0.75rem;
+}
+
+.button {
+  padding: 0.55rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.button--primary {
+  color: var(--surface);
+  background: var(--ink);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--q);
+}
+
+.button--ghost {
+  color: var(--ink-soft);
+  background: transparent;
+  border-color: var(--line);
+}
+
+.button--ghost:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+
+.button--block {
+  width: 100%;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+@media (prefers-color-scheme: dark) {
+  .button--primary {
+    color: var(--paper);
+    background: var(--ink);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   La ecuación: A = Q · R
+   -------------------------------------------------------------------------- */
+
+.equation {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1.25rem);
+  /* Las matrices grandes se desplazan dentro de su contenedor en lugar de
+     forzar el desplazamiento horizontal de toda la página. */
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.equation__operator {
+  flex: none;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 300;
+}
+
+.matrix {
+  flex: none;
+  margin: 0;
+  --accent: var(--input);
+}
+
+.matrix--q {
+  --accent: var(--q);
+}
+
+.matrix--r {
+  --accent: var(--r);
+}
+
+.matrix__caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.matrix__symbol {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.matrix__dims {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.matrix__frame {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+/* Los corchetes se dibujan con bordes en lugar de escribirse como caracteres:
+   así crecen con la altura real de la matriz, como en la notación impresa. */
+.matrix__bracket {
+  flex: none;
+  width: 7px;
+  border: 2px solid var(--accent);
+  opacity: 0.85;
+}
+
+.matrix__bracket--left {
+  border-right: none;
+}
+
+.matrix__bracket--right {
+  border-left: none;
+}
+
+.matrix__grid {
+  display: grid;
+  gap: 2px;
+}
+
+.matrix__cell {
+  padding: 0.3rem 0.5rem;
+  /* La intensidad la fija MatrixView según |valor| respecto del mayor de la
+     matriz: el sombreado hace visible la estructura antes de leer un número. */
+  background: color-mix(in oklab, var(--accent) calc(var(--cell-intensity, 0) * 20%), transparent);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+  animation: cell-in 260ms ease-out backwards;
+}
+
+/* Los ceros bajo la diagonal de R son el resultado del algoritmo, no un dato
+   más: atenuarlos deja ver el triángulo sin ocultar el valor. */
+.matrix__cell--structural {
+  color: var(--ink-faint);
+  opacity: 0.4;
+}
+
+@keyframes cell-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix__cell {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Metadatos del cálculo
+   -------------------------------------------------------------------------- */
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.meta__item dt {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.meta__item dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* --------------------------------------------------------------------------
+   Estadísticas
+   -------------------------------------------------------------------------- */
+
+.stats {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.stats__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.stats__origin {
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+}
+
+.stats__overall {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stat {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--surface);
+}
+
+.stat__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.stat__value {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.verdict--yes {
+  border-color: var(--r);
+  background: color-mix(in oklab, var(--r) 8%, transparent);
+}
+
+.verdict__question {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.verdict__answer {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.verdict--yes .verdict__answer {
+  color: var(--r);
+}
+
+.breakdown {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.breakdown__caption {
+  margin-bottom: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: left;
+}
+
+.breakdown th,
+.breakdown td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+.breakdown thead th {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.breakdown__name {
+  text-align: left !important;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.breakdown__name--q {
+  color: var(--q);
+}
+
+.breakdown__name--r {
+  color: var(--r);
+}
+
+.flag {
+  color: var(--ink-faint);
+  cursor: help;
+}
+
+.flag--on {
+  color: var(--r);
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Estado inicial y errores
+   -------------------------------------------------------------------------- */
+
+.placeholder {
+  display: grid;
+  gap: 1rem;
+  place-items: center;
+  padding: clamp(2rem, 8vw, 5rem) 1rem;
+  text-align: center;
+}
+
+.placeholder__equation {
+  margin: 0;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 7vw, 3.25rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -0.05em;
+}
+
+.placeholder__text {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.alert {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.7rem 0.85rem;
+  color: var(--danger);
+  background: color-mix(in oklab, var(--danger) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--danger) 35%, transparent);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.alert__code {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* --------------------------------------------------------------------------
+   Acceso
+   -------------------------------------------------------------------------- */
+
+.gate {
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 6vw, 4rem) 0;
+}
+
+.gate__card {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 26rem);
+  padding: 1.75rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.gate__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.gate__lead {
+  margin: -0.5rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.gate__note {
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 0.75rem;
+}
+
+.gate__note code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
