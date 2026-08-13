@@ -13,45 +13,47 @@
   --ink-soft: #565d70;
   --ink-faint: #9096a6;
 
-  --paper: #f6f6f9;
+  --paper: #f7f8fb;
   --surface: #ffffff;
   --line: #e3e4ea;
-  --grid-line: #ebebf1;
 
   /* Los dos factores de la descomposición. Índigo y verde azulado difieren
      tanto en tono como en luminosidad, de modo que siguen distinguiéndose sin
-     percepción del color. */
+     percepción del color. Se mantienen ajenos a la marca a propósito: son
+     semántica del dominio (QR), no identidad visual. */
   --q: #4b3ec4;
   --r: #00736a;
   --input: #6a7183;
   --danger: #b0322a;
 
+  /* Identidad Interseguro (interseguro.pe/seguro-de-vida/rumbo), tomada de la
+     página pública: azul de marca para el chrome de la UI (header, hero, foco,
+     enlaces) y magenta como color de acción, igual que sus CTA ("Cotizar
+     ahora"). Separado de --q/--r por la razón de arriba. */
+  --brand: #0855c4;
+  --brand-ink: #454a6c;
+  --brand-cta: #df0086;
+  --brand-cta-hover: #b80070;
+  /* Fondo con tinte muy sutil, igual al que usan para alternar secciones
+     (home__section-benefits: rgba(241,244,249,.55)) — NO un bloque sólido. */
+  --section-tint: rgb(241 244 249 / 55%);
+
   --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
-  --font-sans: ui-sans-serif, system-ui, 'Segoe UI Variable Text', 'Segoe UI', Roboto, sans-serif;
+  /* Plus Jakarta Sans sustituye a Sofia (la tipografía real de interseguro.pe,
+     de licencia comercial): misma familia geométrica-humanista y calidez
+     redondeada, cargada en index.html. */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  --radius: 6px;
-  --shadow: 0 1px 2px rgb(20 22 29 / 6%), 0 8px 24px -16px rgb(20 22 29 / 30%);
+  --radius: 10px;
+  /* rgba(69,74,108,.08) es la sombra real que usan en su navbar y tarjetas
+     (mismo tono que --brand-ink), no un tinte azul inventado. */
+  --shadow: 0 4px 16px rgb(69 74 108 / 8%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ink: #e8e9ee;
-    --ink-soft: #a0a6b6;
-    --ink-faint: #6b7180;
-
-    --paper: #101219;
-    --surface: #171922;
-    --line: #272a35;
-    --grid-line: #1a1d26;
-
-    --q: #9b90ff;
-    --r: #3ecdbd;
-    --input: #8d94a6;
-    --danger: #ff8b80;
-
-    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px -16px rgb(0 0 0 / 80%);
-  }
-}
+/* interseguro.pe no tiene modo oscuro — es siempre claro, blanco con acentos
+   azules. Para que la app se vea igual a la marca en cualquier equipo, NO
+   seguimos prefers-color-scheme: el tema claro de :root de arriba se usa
+   siempre, sin importar la configuración del sistema operativo. */
 
 *,
 *::before,
@@ -59,15 +61,21 @@
   box-sizing: border-box;
 }
 
+/* Salvaguarda: con escalado de pantalla no entero (125%, 150% en Windows) el
+   navegador puede redondear un elemento medio píxel hacia arriba y disparar
+   una barra de scroll horizontal aunque el layout esté bien calculado. Esto
+   la elimina de raíz, en toda la página, sin depender de encontrar el
+   redondeo exacto que la causa. */
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
+  overflow-x: hidden;
+  max-width: 100vw;
   color: var(--ink);
   background-color: var(--paper);
-  /* Retícula de fondo: la matriz es una grilla, y el papel de cálculo también. */
-  background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 32px 32px;
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.55;
@@ -75,7 +83,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--q);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
@@ -89,45 +97,101 @@ body {
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1.25rem clamp(1rem, 4vw, 2.5rem);
+  padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
   background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  /* Su navbar real es fija, blanca, separada por sombra en vez de borde —
+     rgba(69,74,108,.08) 0 4px 16px, el mismo brand-ink usado como tinte. */
+  box-shadow: 0 4px 16px rgb(69 74 108 / 8%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.masthead__brand {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
+.masthead__logo {
+  height: 1.7rem;
+  width: auto;
+  display: block;
 }
 
-/* La marca es el propio nombre de la factorización, compuesto como una fórmula. */
-.masthead__mark {
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 2px solid var(--ink);
-  border-radius: var(--radius);
-  font-family: var(--font-mono);
+.signout__short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .workspace-page .masthead {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding-inline: 1rem;
+  }
+
+  .workspace-page .masthead__logo {
+    height: 1.35rem;
+    min-width: 0;
+  }
+
+  .workspace-page .button--ghost {
+    padding-inline: 0.75rem;
+  }
+
+  .signout__long {
+    display: none;
+  }
+
+  .signout__short {
+    display: inline;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Hero — su patrón real es texto azul de marca sobre fondo claro/blanco, NO
+   un bloque de color sólido (eso solo lo usan en botones y acentos chicos).
+   -------------------------------------------------------------------------- */
+
+.hero {
+  background: var(--section-tint);
+  padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 4vw, 2.5rem);
+}
+
+.hero--compact {
+  padding: clamp(0.7rem, 1.5vw, 1rem) clamp(1rem, 4vw, 2.5rem);
+}
+
+.hero__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.hero__eyebrow {
+  margin: 0 0 0.6rem;
+  color: var(--brand-cta);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero--compact .hero__eyebrow {
+  margin-bottom: 0.2rem;
+}
+
+.hero__title {
+  margin: 0;
+  color: var(--brand);
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hero--compact .hero__title {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+}
+
+.hero__subtitle {
+  max-width: 60ch;
+  margin: 0.5rem 0 0;
+  color: var(--brand-ink);
   font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: -0.06em;
-}
-
-.masthead__title {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 1.2rem;
-  font-weight: 700;
-  /* El tracking cerrado saca a la monoespaciada de su lectura de terminal y la
-     convierte en una tipografía de titular. */
-  letter-spacing: -0.035em;
-}
-
-.masthead__subtitle {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 /* --------------------------------------------------------------------------
@@ -137,23 +201,157 @@ body {
 .shell {
   max-width: 1400px;
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2rem);
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem);
+}
+
+/* El acceso ocupa exactamente el viewport. El shell recibe solo el espacio
+   restante después de la cabecera y el hero, evitando que sus alturas se
+   sumen a 100vh y creen scroll vertical. */
+.login-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.shell--login {
+  display: grid;
+  flex: 1;
+  align-items: safe center;
+  justify-items: center;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+/* La calculadora es una herramienta de trabajo: en escritorio prioriza que
+   editor y resultado quepan en la primera pantalla. En anchos pequeños el
+   grid pasa a una columna y el documento conserva su scroll natural. */
+.shell--workspace {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding-block: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+.workspace-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.footer {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.75rem clamp(1rem, 4vw, 2.5rem) 2.5rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.footer__brand {
+  margin: 0;
+  color: var(--brand-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.footer__legal {
+  margin: 0.35rem 0 0;
+  color: var(--ink-faint);
+  font-size: 0.75rem;
 }
 
 .layout {
   display: grid;
   grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
   gap: 1.5rem;
-  align-items: start;
+  align-items: stretch;
+  height: 100%;
+  min-height: 0;
 }
 
-@media (max-width: 960px) {
+.layout > .panel {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+@media (max-width: 760px) {
+  .shell--workspace {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
   .layout {
     grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  .layout > .panel {
+    height: auto;
+    overflow: visible;
+  }
+
+  .panel--placeholder {
+    display: none;
+  }
+}
+
+@media (max-height: 640px) {
+  .login-page .masthead {
+    padding-block: 0.55rem;
+  }
+
+  .login-page .masthead__logo {
+    height: 1.45rem;
+  }
+
+  .login-page .hero {
+    padding-block: 0.55rem;
+  }
+
+  .login-page .hero__eyebrow {
+    margin-bottom: 0.15rem;
+  }
+
+  .login-page .hero__title {
+    font-size: clamp(1.25rem, 3vw, 1.6rem);
+  }
+
+  .login-page .hero__subtitle {
+    display: none;
+  }
+
+  .login-page .gate__card {
+    gap: 0.6rem;
+    padding: 1rem;
+  }
+
+  .login-page .gate__title {
+    font-size: 1.1rem;
+  }
+
+  .login-page .gate__lead {
+    margin-top: -0.25rem;
+  }
+
+  .workspace-page .editor__examples {
+    display: none;
   }
 }
 
 .panel {
+  /* Los ítems de grid heredan min-width:auto por defecto, que se calcula del
+     contenido mínimo de sus hijos. Sin esto, una matriz ancha (celdas con
+     white-space:nowrap) empuja el panel — y con él la página entera — más
+     allá del viewport en vez de quedar contenida por el scroll interno de
+     .equation. Es la causa real de que el sitio no fuera responsivo. */
+  min-width: 0;
   padding: 1.25rem;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -167,12 +365,23 @@ body {
   align-content: start;
 }
 
+.shell--workspace .panel {
+  padding: clamp(0.85rem, 2vh, 1.15rem);
+}
+
+.shell--workspace .panel--input {
+  gap: clamp(0.7rem, 1.6vh, 1rem);
+}
+
+.shell--workspace .editor {
+  gap: clamp(0.6rem, 1.5vh, 0.85rem);
+}
+
 .panel__title {
   margin: 0;
-  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
 }
@@ -229,6 +438,11 @@ body {
 .editor__grid {
   display: grid;
   gap: 3px;
+  /* Igual que .equation: con matrices grandes (hasta 12×12) las celdas no
+     deben forzar el ancho de la página, sino desplazarse dentro de su propio
+     contenedor. */
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
 }
 
 .editor__cell {
@@ -268,19 +482,22 @@ body {
 }
 
 .chip {
-  padding: 0.3rem 0.6rem;
-  color: var(--ink-soft);
-  background: var(--paper);
-  border: 1px solid var(--line);
+  padding: 0.35rem 0.75rem;
+  color: var(--brand-ink);
+  background: color-mix(in oklab, var(--brand) 8%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--brand) 22%, transparent);
   border-radius: 999px;
   font-family: inherit;
   font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
 .chip:hover:not(:disabled) {
-  color: var(--ink);
-  border-color: var(--ink-faint);
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
 }
 
 .chip:disabled {
@@ -332,12 +549,15 @@ body {
 }
 
 .button--primary {
-  color: var(--surface);
-  background: var(--ink);
+  color: #fff;
+  background: var(--brand-cta);
+  /* Sus botones reales ("Cotizar ahora", "¡Lo quiero!") usan 5-8px, nunca
+     píldora completa — eso lo reservan para el WhatsApp flotante. */
+  border-radius: 8px;
 }
 
 .button--primary:hover:not(:disabled) {
-  background: var(--q);
+  background: var(--brand-cta-hover);
 }
 
 .button--ghost {
@@ -347,8 +567,8 @@ body {
 }
 
 .button--ghost:hover {
-  color: var(--ink);
-  border-color: var(--ink-faint);
+  color: var(--brand);
+  border-color: var(--brand);
 }
 
 .button--block {
@@ -358,13 +578,6 @@ body {
 .button:disabled {
   opacity: 0.55;
   cursor: progress;
-}
-
-@media (prefers-color-scheme: dark) {
-  .button--primary {
-    color: var(--paper);
-    background: var(--ink);
-  }
 }
 
 /* --------------------------------------------------------------------------
@@ -509,8 +722,8 @@ body {
 
 .meta__item dd {
   margin: 0.15rem 0 0;
-  font-family: var(--font-mono);
   font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* --------------------------------------------------------------------------
@@ -531,11 +744,6 @@ body {
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-}
-
-.stats__origin {
-  color: var(--ink-faint);
-  font-size: 0.72rem;
 }
 
 .stats__overall {
@@ -597,6 +805,10 @@ body {
 
 .verdict--yes .verdict__answer {
   color: var(--r);
+}
+
+.breakdown-scroll {
+  overflow-x: auto;
 }
 
 .breakdown {
@@ -711,14 +923,14 @@ body {
 .gate {
   display: grid;
   place-items: center;
-  padding: clamp(1.5rem, 6vw, 4rem) 0;
+  width: 100%;
 }
 
 .gate__card {
   display: grid;
-  gap: 1rem;
+  gap: 0.85rem;
   width: min(100%, 26rem);
-  padding: 1.75rem;
+  padding: 1.5rem;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -727,10 +939,9 @@ body {
 
 .gate__title {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .gate__lead {

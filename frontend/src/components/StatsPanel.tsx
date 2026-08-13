@@ -29,7 +29,6 @@ export function StatsPanel({ statistics }: StatsPanelProps) {
         <h2 id="stats-title" className="panel__title">
           Estadísticas
         </h2>
-        <span className="stats__origin">calculadas por la API Node</span>
       </div>
 
       <div className="stats__overall">
@@ -50,42 +49,44 @@ export function StatsPanel({ statistics }: StatsPanelProps) {
         <span className="verdict__answer">{statistics.anyDiagonal ? 'Sí' : 'No'}</span>
       </div>
 
-      <table className="breakdown">
-        <caption className="breakdown__caption">Desglose por matriz</caption>
-        <thead>
-          <tr>
-            <th scope="col">Matriz</th>
-            <th scope="col">Máximo</th>
-            <th scope="col">Mínimo</th>
-            <th scope="col">Promedio</th>
-            <th scope="col">Suma</th>
-            <th scope="col">Diagonal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map(([name, stats]) => (
-            <tr key={name}>
-              <th scope="row" className={`breakdown__name breakdown__name--${name}`}>
-                {name.toUpperCase()}
-              </th>
-              <td>{formatStat(stats.max)}</td>
-              <td>{formatStat(stats.min)}</td>
-              <td>{formatStat(stats.average)}</td>
-              <td>{formatStat(stats.sum)}</td>
-              <td>
-                <span
-                  className={`flag${stats.isDiagonal ? ' flag--on' : ''}`}
-                  // La tolerancia se deriva de la magnitud de cada matriz, así
-                  // que difiere entre Q y R: exponerla hace auditable el juicio.
-                  title={`Evaluado con una tolerancia de ${stats.tolerance.toExponential(2)}`}
-                >
-                  {stats.isDiagonal ? 'Sí' : 'No'}
-                </span>
-              </td>
+      <div className="breakdown-scroll">
+        <table className="breakdown">
+          <caption className="breakdown__caption">Desglose por matriz</caption>
+          <thead>
+            <tr>
+              <th scope="col">Matriz</th>
+              <th scope="col">Máximo</th>
+              <th scope="col">Mínimo</th>
+              <th scope="col">Promedio</th>
+              <th scope="col">Suma</th>
+              <th scope="col">Diagonal</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {entries.map(([name, stats]) => (
+              <tr key={name}>
+                <th scope="row" className={`breakdown__name breakdown__name--${name}`}>
+                  {name.toUpperCase()}
+                </th>
+                <td>{formatStat(stats.max)}</td>
+                <td>{formatStat(stats.min)}</td>
+                <td>{formatStat(stats.average)}</td>
+                <td>{formatStat(stats.sum)}</td>
+                <td>
+                  <span
+                    className={`flag${stats.isDiagonal ? ' flag--on' : ''}`}
+                    // La tolerancia se deriva de la magnitud de cada matriz, así
+                    // que difiere entre Q y R: exponerla hace auditable el juicio.
+                    title={`Evaluado con una tolerancia de ${stats.tolerance.toExponential(2)}`}
+                  >
+                    {stats.isDiagonal ? 'Sí' : 'No'}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

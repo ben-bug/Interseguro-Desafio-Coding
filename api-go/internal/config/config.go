@@ -10,8 +10,10 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -79,6 +81,10 @@ func (c Config) validate() error {
 	if c.StatsAPIURL == "" {
 		return errors.New("STATS_API_URL es obligatorio")
 	}
+	statsURL, err := url.Parse(c.StatsAPIURL)
+	if err != nil || (statsURL.Scheme != "http" && statsURL.Scheme != "https") || statsURL.Host == "" {
+		return fmt.Errorf("STATS_API_URL debe ser una URL HTTP válida, se recibió %q", c.StatsAPIURL)
+	}
 	if c.MaxMatrixDimension < 1 {
 		return fmt.Errorf("MAX_MATRIX_DIMENSION debe ser positivo, se recibió %d", c.MaxMatrixDimension)
 	}
@@ -95,7 +101,7 @@ func (c Config) validate() error {
 }
 
 func envString(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
 		return v
 	}
 	return fallback

@@ -4,6 +4,7 @@ import { LoginPanel } from './components/LoginPanel';
 import { MatrixEditor } from './components/MatrixEditor';
 import { MatrixView } from './components/MatrixView';
 import { StatsPanel } from './components/StatsPanel';
+import interseguroLogo from './assets/descarga.png';
 
 /** Matriz inicial: el ejemplo canónico de la literatura sobre QR. */
 const INITIAL_MATRIX: Matrix = [
@@ -48,9 +49,10 @@ export function App() {
 
   if (!token) {
     return (
-      <>
+      <div className="login-page">
         <Masthead />
-        <main className="shell">
+        <Hero />
+        <main className="shell shell--login">
           <LoginPanel
             onAuthenticated={(issued) => {
               setToken(issued);
@@ -59,15 +61,16 @@ export function App() {
             }}
           />
         </main>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="workspace-page">
       <Masthead onSignOut={() => setToken(null)} />
+      <Hero compact />
 
-      <main className="shell">
+      <main className="shell shell--workspace">
         <div className="layout">
           <div className="panel panel--input">
             <MatrixEditor matrix={matrix} onChange={setMatrix} disabled={pending} />
@@ -124,7 +127,7 @@ export function App() {
             )}
           </div>
 
-          <div className="panel panel--output">
+          <div className={`panel panel--output${result ? '' : ' panel--placeholder'}`}>
             {result ? (
               <Result result={result} matrix={matrix} decimals={decimals} />
             ) : (
@@ -133,29 +136,44 @@ export function App() {
           </div>
         </div>
       </main>
-    </>
+    </div>
   );
 }
 
 function Masthead({ onSignOut }: { onSignOut?: () => void }) {
   return (
     <header className="masthead">
-      <div className="masthead__brand">
-        <span className="masthead__mark" aria-hidden="true">
-          QR
-        </span>
-        <div>
-          <h1 className="masthead__title">Factorización QR</h1>
-          <p className="masthead__subtitle">Householder · Go + Fiber → Node + Express</p>
-        </div>
-      </div>
+      <img className="masthead__logo" src={interseguroLogo} alt="Interseguro" />
 
       {onSignOut && (
         <button className="button button--ghost" type="button" onClick={onSignOut}>
-          Cerrar sesión
+          <span className="signout__long">Cerrar sesión</span>
+          <span className="signout__short">Salir</span>
         </button>
       )}
     </header>
+  );
+}
+
+/**
+ * Franja de marca bajo la cabecera, con el mismo azul de interseguro.pe. Es lo
+ * que ancla visualmente la app al resto del sitio: sin ella, el panel de
+ * cálculo podría ser la herramienta de cualquier proveedor.
+ */
+function Hero({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={`hero${compact ? ' hero--compact' : ''}`}>
+      <div className="hero__inner">
+        <p className="hero__eyebrow">Herramienta de cálculo</p>
+        <h1 className="hero__title">Factorización QR de matrices</h1>
+        {!compact && (
+          <p className="hero__subtitle">
+            Descompón cualquier matriz en sus factores Q y R, y obtén estadísticas del resultado
+            en segundos.
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -195,8 +213,8 @@ function Result({
 
       <dl className="meta">
         <div className="meta__item">
-          <dt>Algoritmo</dt>
-          <dd>{result.meta.algorithm}</dd>
+          <dt>Método</dt>
+          <dd style={{ textTransform: 'capitalize' }}>{result.meta.algorithm}</dd>
         </div>
         <div className="meta__item">
           <dt>Forma</dt>
@@ -226,9 +244,8 @@ function Placeholder() {
         A = Q · R
       </p>
       <p className="placeholder__text">
-        Define una matriz y pulsa <strong>Factorizar</strong>. La API Go la descompone en una matriz
-        ortogonal Q y una triangular superior R, y la API Node calcula las estadísticas del
-        resultado.
+        Ingresa una matriz y pulsa <strong>Factorizar</strong> para obtener su descomposición Q · R
+        y las estadísticas asociadas al instante.
       </p>
     </div>
   );

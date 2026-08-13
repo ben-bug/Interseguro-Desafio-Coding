@@ -74,13 +74,17 @@ func RequestLogger(logger *slog.Logger) fiber.Handler {
 		start := time.Now()
 		err := c.Next()
 
-		// c.Response().StatusCode() ya refleja el status final, incluso cuando
-		// la respuesta la escribió ErrorHandler.
+		status := c.Response().StatusCode()
+		if err != nil {
+			// Fiber ejecuta ErrorHandler después de desenrollar los middleware;
+			// en este punto la respuesta aún conserva 200.
+			status = statusFromError(err)
+		}
 		attrs := []any{
 			slog.String("requestId", requestid.FromContext(c)),
 			slog.String("method", c.Method()),
 			slog.String("path", c.Path()),
-			slog.Int("status", c.Response().StatusCode()),
+			slog.Int("status", status),
 			slog.Float64("durationMs", float64(time.Since(start).Microseconds())/1000),
 		}
 		if err != nil {

@@ -93,7 +93,7 @@ type StatsClient struct {
 // entrante, que se propaga hasta acá.
 func NewStatsClient(baseURL string, timeout time.Duration, maxRetries int, logger *slog.Logger) *StatsClient {
 	return &StatsClient{
-		baseURL: strings.TrimSuffix(baseURL, "/"),
+		baseURL: strings.TrimSuffix(strings.TrimSpace(baseURL), "/"),
 		httpClient: &http.Client{
 			Timeout: timeout,
 			Transport: &http.Transport{

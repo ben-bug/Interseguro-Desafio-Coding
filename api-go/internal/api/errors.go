@@ -71,7 +71,7 @@ func ErrorHandler(c fiber.Ctx, err error) error {
 		Message:   "error interno del servidor",
 		RequestID: requestid.FromContext(c),
 	}
-	status := http.StatusInternalServerError
+	status := statusFromError(err)
 
 	var apiErr *APIError
 	var fiberErr *fiber.Error
@@ -96,4 +96,20 @@ func ErrorHandler(c fiber.Ctx, err error) error {
 	// Los errores no contemplados salen como 500 genérico a propósito: el
 	// detalle interno queda en los logs del servidor y no se filtra al cliente.
 	return c.Status(status).JSON(ErrorResponse{Error: payload})
+}
+
+// statusFromError permite que el logger conozca el estado que ErrorHandler
+// escribirÃ¡ despuÃ©s de que la cadena de middleware termine.
+func statusFromError(err error) int {
+	var apiErr *APIError
+	if errors.As(err, &apiErr) {
+		return apiErr.Status
+	}
+
+	var fiberErr *fiber.Error
+	if errors.As(err, &fiberErr) {
+		return fiberErr.Code
+	}
+
+	return http.StatusInternalServerError
 }

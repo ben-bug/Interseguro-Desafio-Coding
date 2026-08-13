@@ -92,6 +92,29 @@ func TestLoadOverridesFromEnv(t *testing.T) {
 	}
 }
 
+func TestLoadTrimsStringEnvironmentValues(t *testing.T) {
+	env := validEnv()
+	env["GO_API_PORT"] = " 9090 "
+	env["STATS_API_URL"] = "  http://localhost:3000/  "
+	env["DEMO_USERNAME"] = " demo "
+	setEnv(t, env)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load devolviÃ³ error: %v", err)
+	}
+
+	if cfg.Port != "9090" {
+		t.Errorf("Port = %q, se esperaba 9090", cfg.Port)
+	}
+	if cfg.StatsAPIURL != "http://localhost:3000/" {
+		t.Errorf("StatsAPIURL = %q", cfg.StatsAPIURL)
+	}
+	if cfg.DemoUsername != "demo" {
+		t.Errorf("DemoUsername = %q", cfg.DemoUsername)
+	}
+}
+
 func TestLoadRejectsInvalidConfig(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -106,6 +129,11 @@ func TestLoadRejectsInvalidConfig(t *testing.T) {
 		{
 			name:     "sin DEMO_PASSWORD",
 			mutate:   func(e map[string]string) { delete(e, "DEMO_PASSWORD") },
+			wantFail: true,
+		},
+		{
+			name:     "URL de estadísticas inválida",
+			mutate:   func(e map[string]string) { e["STATS_API_URL"] = "localhost:3000" },
 			wantFail: true,
 		},
 		{
