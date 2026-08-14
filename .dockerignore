@@ -1,0 +1,10 @@
+.git
+.github
+.claude
+.gemini
+graphify-out
+dev-launcher
+**/node_modules
+**/dist
+**/*.log
+.env
