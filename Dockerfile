@@ -39,7 +39,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ---------------------------------------------------------------------------
 FROM node:22-alpine AS runtime
 
-RUN apk add --no-cache nginx ca-certificates
+RUN apk add --no-cache nginx ca-certificates dos2unix
 
 # API Node
 WORKDIR /app/api-node
@@ -55,8 +55,8 @@ COPY --from=frontend-builder /src/frontend/dist /usr/share/nginx/html
 
 # Entrypoint script
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh
 
-EXPOSE 80 8080 3000
+EXPOSE 8080 3000
 
 CMD ["/entrypoint.sh"]

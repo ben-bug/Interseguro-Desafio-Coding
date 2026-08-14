@@ -14,13 +14,14 @@ export LOG_LEVEL="${LOG_LEVEL:-info}"
 export MAX_MATRICES="${MAX_MATRICES:-16}"
 export MAX_MATRIX_DIMENSION="${MAX_MATRIX_DIMENSION:-256}"
 
-export NODE_API_PORT="3000"
-export GO_API_PORT="8080"
-export STATS_API_URL="http://127.0.0.1:3000"
+# Puertos internos (para evitar conflicto con $PORT de Railway)
+export NODE_API_PORT="13000"
+export GO_API_PORT="18080"
+export STATS_API_URL="http://127.0.0.1:13000"
 export STATS_API_TIMEOUT_SECONDS="${STATS_API_TIMEOUT_SECONDS:-5}"
 export STATS_API_MAX_RETRIES="${STATS_API_MAX_RETRIES:-1}"
 
-# Puerto asignado por Railway o fallback a 80/8080
+# Puerto público asignado por Railway o fallback a 8080
 export PORT="${PORT:-8080}"
 
 # Configurar Nginx para escuchar en $PORT
@@ -46,13 +47,13 @@ server {
         add_header Cache-Control "public, immutable";
     }
 
-    location / {
-        add_header Cache-Control "no-cache";
-        try_files \$uri \$uri/ /index.html;
+    location /health {
+        proxy_pass http://127.0.0.1:18080/health;
+        proxy_http_version 1.1;
     }
 
     location /api/ {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:18080;
         proxy_http_version 1.1;
 
         proxy_set_header Host \$host;
@@ -64,16 +65,21 @@ server {
         proxy_read_timeout 30s;
         client_max_body_size 16m;
     }
+
+    location / {
+        add_header Cache-Control "no-cache";
+        try_files \$uri \$uri/ /index.html;
+    }
 }
 EOF
 
 # Iniciar Node API en segundo plano
-echo "==> Iniciando API Node (estadísticas) en puerto 3000..."
+echo "==> Iniciando API Node (estadísticas) en puerto 13000..."
 cd /app/api-node && node dist/server.js &
 NODE_PID=$!
 
 # Iniciar Go API en segundo plano
-echo "==> Iniciando API Go (QR) en puerto 8080..."
+echo "==> Iniciando API Go (QR) en puerto 18080..."
 /usr/local/bin/server &
 GO_PID=$!
 
@@ -86,7 +92,7 @@ cleanup() {
 }
 trap cleanup SIGINT SIGTERM
 
-# Iniciar Nginx
+# Iniciar Nginx en primer plano
 echo "==> Iniciando Nginx en puerto $PORT..."
 nginx -g "daemon off;" &
 NGINX_PID=$!
