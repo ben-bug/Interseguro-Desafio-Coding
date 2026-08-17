@@ -27,3 +27,6 @@ Thumbs.db
 # Graphify
 graphify-out/
 
+# Contexto operativo local (no publicar)
+CLAUDE.md
+
