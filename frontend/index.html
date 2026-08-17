@@ -26,6 +26,27 @@
       dirección IP de quien la usa no llega a un tercero solo por abrir la
       página. El detalle de la pila está en styles.css.
     -->
+
+    <!--
+      Se aplica el tema guardado antes de pintar nada.
+
+      Si esto viviera dentro del JavaScript de la aplicación, el navegador
+      alcanzaría a dibujar un fotograma con el tema del sistema y el usuario
+      vería un destello claro antes de que apareciera el oscuro. El script va en
+      línea y sin `defer` a propósito: bloquea el render lo justo para evitarlo.
+    -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('qr-theme');
+          if (saved === 'light' || saved === 'dark') {
+            document.documentElement.dataset.theme = saved;
+          }
+        } catch (e) {
+          /* Sin acceso a localStorage manda la preferencia del sistema. */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

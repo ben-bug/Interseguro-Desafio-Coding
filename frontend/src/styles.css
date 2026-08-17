@@ -16,36 +16,50 @@
    ========================================================================== */
 
 :root {
+  /* Declara que la página sabe pintarse en ambos esquemas y, junto con
+     light-dark(), decide cuál de los dos valores toma cada token. También hace
+     que el navegador pinte en el tema correcto lo que no controla el CSS: las
+     barras de desplazamiento y los controles nativos de los formularios. */
+  color-scheme: light dark;
+
+  /* Cada token se declara una sola vez con sus dos versiones —claro primero,
+     oscuro después—, en lugar de repetir la lista entera dentro de una consulta
+     de medios. Así un color nuevo no puede quedar definido para un tema y
+     olvidado en el otro, que es la forma habitual en que se rompe un modo
+     oscuro. */
+
   /* --- Marco institucional ------------------------------------------------
      El azul es el color corporativo de Interseguro y viste el chrome de la
      aplicación: cabecera, foco, acciones primarias. El magenta queda para la
-     acción principal, que es el patrón de sus propias llamadas a la acción. */
-  --brand: #0855c4;
-  --brand-strong: #06429a;
-  --brand-tint: #eef3fc;
-  --action: #df0086;
-  --action-strong: #b80070;
+     acción principal, que es el patrón de sus propias llamadas a la acción.
+     En oscuro ambos se aclaran lo necesario para sostener el contraste sobre
+     fondo profundo, sin dejar de ser reconocibles. */
+  --brand: light-dark(#0855c4, #7ba6f5);
+  --brand-strong: light-dark(#06429a, #a6c3f8);
+  --brand-tint: light-dark(#eef3fc, #182238);
+  --action: light-dark(#df0086, #ff5cb8);
+  --action-strong: light-dark(#b80070, #ff8ccd);
 
   /* --- Acentos del dominio ------------------------------------------------
      Deliberadamente ajenos a la marca: no son identidad visual sino semántica.
      Índigo y verde azulado difieren en tono y en luminosidad, así que siguen
      distinguiéndose sin percepción del color. */
-  --q: #4b3ec4;
-  --r: #00736a;
-  --input: #5b6478;
+  --q: light-dark(#4b3ec4, #9b90ff);
+  --r: light-dark(#00736a, #3ecdbd);
+  --input: light-dark(#5b6478, #9aa3b8);
 
   /* --- Superficies y texto ------------------------------------------------ */
-  --ink: #16192b;
-  --ink-soft: #4e5568;
-  --ink-faint: #858da3;
+  --ink: light-dark(#16192b, #e9ebf2);
+  --ink-soft: light-dark(#4e5568, #a3aabd);
+  --ink-faint: light-dark(#858da3, #6d7488);
 
-  --paper: #f5f7fb;
-  --surface: #ffffff;
-  --line: #e2e6ef;
-  --line-soft: #eef1f7;
+  --paper: light-dark(#f5f7fb, #0e1018);
+  --surface: light-dark(#ffffff, #161a26);
+  --line: light-dark(#e2e6ef, #262c3b);
+  --line-soft: light-dark(#eef1f7, #1e2331);
 
-  --danger: #b3261e;
-  --danger-tint: #fdf0ef;
+  --danger: light-dark(#b3261e, #ff8b80);
+  --danger-tint: light-dark(#fdf0ef, #2a1a1c);
 
   /* --- Tipografía ---------------------------------------------------------
      Pila del sistema en lugar de una fuente descargada: aparece de inmediato,
@@ -60,42 +74,22 @@
 
   --radius: 10px;
   --radius-sm: 6px;
-  --shadow-sm: 0 1px 2px rgb(22 25 43 / 5%);
-  --shadow: 0 4px 16px rgb(22 25 43 / 8%);
+  /* La sombra necesita más opacidad en oscuro: sobre un fondo profundo, una
+     sombra tenue no separa nada. */
+  --shadow-sm: 0 1px 2px light-dark(rgb(22 25 43 / 5%), rgb(0 0 0 / 40%));
+  --shadow: 0 4px 16px light-dark(rgb(22 25 43 / 8%), rgb(0 0 0 / 45%));
 }
 
-/* Modo oscuro.
-   Se respeta la preferencia del sistema: esto es una herramienta técnica que se
-   usa en jornadas largas y en entornos de luz muy distintos, no la web pública
-   de la marca. El azul institucional se aclara lo necesario para mantener el
-   contraste sobre fondo oscuro sin dejar de ser reconocible. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --brand: #7ba6f5;
-    --brand-strong: #a6c3f8;
-    --brand-tint: #182238;
-    --action: #ff5cb8;
-    --action-strong: #ff8ccd;
+/* Elección explícita del usuario.
+   Sin estos atributos manda la preferencia del sistema operativo. El botón de
+   la cabecera escribe `data-theme` en <html>, y basta con cambiar color-scheme
+   para que todos los tokens de arriba conmuten a la vez. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
 
-    --q: #9b90ff;
-    --r: #3ecdbd;
-    --input: #9aa3b8;
-
-    --ink: #e9ebf2;
-    --ink-soft: #a3aabd;
-    --ink-faint: #6d7488;
-
-    --paper: #0e1018;
-    --surface: #161a26;
-    --line: #262c3b;
-    --line-soft: #1e2331;
-
-    --danger: #ff8b80;
-    --danger-tint: #2a1a1c;
-
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
-    --shadow: 0 4px 16px rgb(0 0 0 / 45%);
-  }
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 *,
@@ -181,6 +175,13 @@ body {
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.masthead__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
 }
 
 /* La etiqueta larga del botón de salida es la predeterminada; la corta aparece
@@ -485,6 +486,37 @@ body {
 
 .button--block {
   width: 100%;
+}
+
+/* Botón cuadrado con un icono y sin texto. El tamaño fijo evita que la cabecera
+   se mueva al alternar entre el sol y la luna, que tienen anchos distintos. */
+.button--icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--ink-soft);
+  background: transparent;
+  border-color: var(--line);
+}
+
+.button--icon:hover:not(:disabled) {
+  color: var(--brand);
+  border-color: var(--brand);
+}
+
+/* El icono gira levemente al aparecer: basta para que se note el cambio de tema
+   sin convertirlo en una animación que distraiga. */
+.button--icon svg {
+  animation: icon-in 200ms ease-out;
+}
+
+@keyframes icon-in {
+  from {
+    opacity: 0;
+    transform: rotate(-35deg) scale(0.8);
+  }
 }
 
 .button:disabled {
@@ -992,6 +1024,11 @@ body {
     min-height: 44px;
   }
 
+  .button--icon {
+    width: 44px;
+    height: 44px;
+  }
+
   .editor__cell,
   .field__input {
     /* Por debajo de 16 px, Safari en iOS amplía la página al enfocar un campo y
@@ -1025,7 +1062,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .matrix__cell {
+  .matrix__cell,
+  .button--icon svg {
     animation: none;
   }
 

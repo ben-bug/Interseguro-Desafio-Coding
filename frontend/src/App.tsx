@@ -4,6 +4,7 @@ import { LoginPanel } from './components/LoginPanel';
 import { MatrixEditor } from './components/MatrixEditor';
 import { MatrixView } from './components/MatrixView';
 import { StatsPanel } from './components/StatsPanel';
+import { ThemeToggle } from './components/ThemeToggle';
 import { Wordmark } from './components/Wordmark';
 
 /** Matriz inicial: el ejemplo canónico de la literatura sobre QR. */
@@ -145,17 +146,23 @@ function Masthead({ onSignOut }: { onSignOut?: () => void }) {
     <header className="masthead">
       <Wordmark />
 
-      {onSignOut && (
-        <button className="button button--ghost" type="button" onClick={onSignOut}>
+      {/* Las acciones de la cabecera se agrupan para que queden juntas al borde
+          derecho y no se separen cuando falta el botón de salir. */}
+      <div className="masthead__actions">
+        <ThemeToggle />
+
+        {onSignOut && (
+          <button className="button button--ghost" type="button" onClick={onSignOut}>
           {/* La etiqueta se acorta en pantallas angostas, donde el ancho de la
               cabecera es escaso; el texto completo sigue siendo el que leen los
               lectores de pantalla en cualquier tamaño. */}
-          <span className="signout__long">Cerrar sesión</span>
-          <span className="signout__short" aria-hidden="true">
-            Salir
-          </span>
-        </button>
-      )}
+            <span className="signout__long">Cerrar sesión</span>
+            <span className="signout__short" aria-hidden="true">
+              Salir
+            </span>
+          </button>
+        )}
+      </div>
     </header>
   );
 }
