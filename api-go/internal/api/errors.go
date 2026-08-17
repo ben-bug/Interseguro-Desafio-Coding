@@ -66,50 +66,51 @@ func NewAPIError(status int, code, message string, details map[string]any) *APIE
 // aquí sale como ErrorResponse, incluidos los panics recuperados y las rutas
 // inexistentes.
 func ErrorHandler(c fiber.Ctx, err error) error {
-	payload := ErrorPayload{
-		Code:      CodeInternal,
-		Message:   "error interno del servidor",
-		RequestID: requestid.FromContext(c),
-	}
-	status := statusFromError(err)
+	status, payload := resolveError(err)
+	payload.RequestID = requestid.FromContext(c)
 
-	var apiErr *APIError
-	var fiberErr *fiber.Error
-
-	switch {
-	case errors.As(err, &apiErr):
-		status = apiErr.Status
-		payload.Code = apiErr.Code
-		payload.Message = apiErr.Message
-		payload.Details = apiErr.Details
-
-	case errors.As(err, &fiberErr):
-		// Errores generados por el propio framework: sobre todo el 404 de ruta
-		// no encontrada y el 405 de método no permitido.
-		status = fiberErr.Code
-		payload.Message = fiberErr.Message
-		if status == http.StatusNotFound {
-			payload.Code = CodeNotFound
-		}
-	}
-
-	// Los errores no contemplados salen como 500 genérico a propósito: el
-	// detalle interno queda en los logs del servidor y no se filtra al cliente.
 	return c.Status(status).JSON(ErrorResponse{Error: payload})
 }
 
-// statusFromError permite que el logger conozca el estado que ErrorHandler
-// escribirá después de que la cadena de middleware termine.
-func statusFromError(err error) int {
+// resolveError traduce un error al status HTTP y al cuerpo con que debe
+// responderse.
+//
+// Es la única fuente de esa decisión. ErrorHandler la usa para escribir la
+// respuesta y el middleware de registro para saber con qué status terminará el
+// request, de modo que log y respuesta no pueden discrepar: si la traducción
+// cambia, cambia para ambos a la vez.
+func resolveError(err error) (int, ErrorPayload) {
 	var apiErr *APIError
 	if errors.As(err, &apiErr) {
-		return apiErr.Status
+		return apiErr.Status, ErrorPayload{
+			Code:    apiErr.Code,
+			Message: apiErr.Message,
+			Details: apiErr.Details,
+		}
 	}
 
+	// Errores del propio framework: sobre todo el 404 de ruta inexistente y el
+	// 405 de método no permitido.
 	var fiberErr *fiber.Error
 	if errors.As(err, &fiberErr) {
-		return fiberErr.Code
+		code := CodeInternal
+		if fiberErr.Code == http.StatusNotFound {
+			code = CodeNotFound
+		}
+		return fiberErr.Code, ErrorPayload{Code: code, Message: fiberErr.Message}
 	}
 
-	return http.StatusInternalServerError
+	// Lo no contemplado sale como 500 genérico a propósito: el detalle interno
+	// queda en los logs del servidor y no se filtra al cliente.
+	return http.StatusInternalServerError, ErrorPayload{
+		Code:    CodeInternal,
+		Message: "error interno del servidor",
+	}
+}
+
+// statusFromError expone solo el status con que se responderá. Lo usa el
+// middleware de registro, que necesita el código pero no el cuerpo.
+func statusFromError(err error) int {
+	status, _ := resolveError(err)
+	return status
 }

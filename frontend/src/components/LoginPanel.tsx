@@ -41,7 +41,8 @@ export function LoginPanel({ onAuthenticated }: LoginPanelProps) {
       <form className="gate__card" onSubmit={submit}>
         <h2 className="gate__title">Iniciar sesión</h2>
         <p className="gate__lead">
-          Ingresa tus credenciales para acceder a la calculadora de factorización QR.
+          Las APIs exigen un token JWT. La API Go lo emite al validar estas credenciales y lo
+          propaga a la API de estadísticas.
         </p>
 
         <label className="field" htmlFor={userId}>
@@ -81,7 +82,11 @@ export function LoginPanel({ onAuthenticated }: LoginPanelProps) {
         </button>
 
         <p className="gate__note">
-          Cuenta de demostración: usuario <code>demo</code>, contraseña <code>demo1234</code>.
+          {/* No se anuncia la contraseña: se define por entorno y cambia en cada
+              despliegue, así que dejarla escrita aquí quedaría desactualizado y
+              daría la impresión de ser un valor fijo del código. */}
+          Credenciales de demostración: se definen en <code>DEMO_USERNAME</code> y{' '}
+          <code>DEMO_PASSWORD</code> del archivo <code>.env</code>.
         </p>
       </form>
     </div>

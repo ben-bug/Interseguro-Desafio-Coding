@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Factorización QR">
+  <!--
+    El icono es la silueta de una matriz triangular superior: las celdas
+    ocupadas forman la escalera que deja el algoritmo de Householder al anular
+    todo lo que hay bajo la diagonal.
+
+    Se eligió esa forma porque sobrevive al tamaño real de un favicon. Un
+    monograma de dos letras se vuelve ilegible a 16 px; un patrón de bloques
+    con contraste alto se sigue distinguiendo, y además dice algo cierto sobre
+    lo que hace la aplicación.
+  -->
+  <rect width="32" height="32" rx="7" fill="#0855c4"/>
+  <g fill="#ffffff">
+    <!-- Fila 1: la diagonal y todo lo que queda a su derecha -->
+    <rect x="6"  y="7"  width="6" height="6" rx="1.5"/>
+    <rect x="14" y="7"  width="6" height="6" rx="1.5"/>
+    <rect x="22" y="7"  width="4" height="6" rx="1.5"/>
+    <!-- Fila 2: se pierde la primera celda -->
+    <rect x="14" y="15" width="6" height="6" rx="1.5"/>
+    <rect x="22" y="15" width="4" height="6" rx="1.5"/>
+    <!-- Fila 3: solo queda la diagonal -->
+    <rect x="22" y="23" width="4" height="4" rx="1.5"/>
+  </g>
+  <!-- Las posiciones anuladas se insinúan en lugar de dejarse vacías: es lo que
+       hace legible el triángulo en tamaños grandes. -->
+  <g fill="#ffffff" opacity="0.28">
+    <rect x="6"  y="15" width="6" height="6" rx="1.5"/>
+    <rect x="6"  y="23" width="6" height="4" rx="1.5"/>
+    <rect x="14" y="23" width="6" height="4" rx="1.5"/>
+  </g>
+</svg>

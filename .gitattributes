@@ -7,6 +7,12 @@
 *.sh text eol=lf
 entrypoint.sh text eol=lf
 
+# Los archivos por lotes son el caso contrario: el intérprete de cmd.exe exige
+# CRLF. Con finales de línea LF no reconoce ninguna instrucción e intenta
+# ejecutar cada palabra del archivo como si fuera un comando.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 # Lo mismo aplica a los archivos que consume Docker o el shell del contenedor.
 Dockerfile text eol=lf
 *.dockerfile text eol=lf

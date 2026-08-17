@@ -92,11 +92,17 @@ func TestLoadOverridesFromEnv(t *testing.T) {
 	}
 }
 
-func TestLoadTrimsStringEnvironmentValues(t *testing.T) {
+// TestLoadTrimsSurroundingWhitespace cubre un fallo difícil de diagnosticar: un
+// espacio o un salto de línea invisible al final de una variable de entorno.
+// Pasa con facilidad al pegar valores en el panel de una plataforma cloud o al
+// editar un archivo .env, y sin el recorte produce un puerto " 9090 " que no
+// abre y un usuario " demo " que nunca coincide con el que se escribe al entrar.
+func TestLoadTrimsSurroundingWhitespace(t *testing.T) {
 	env := validEnv()
 	env["GO_API_PORT"] = " 9090 "
-	env["STATS_API_URL"] = "  http://localhost:3000/  "
+	env["STATS_API_URL"] = "  http://localhost:3000  "
 	env["DEMO_USERNAME"] = " demo "
+	env["JWT_ISSUER"] = "\tinterseguro-qr-api\n"
 	setEnv(t, env)
 
 	cfg, err := Load()
@@ -104,14 +110,56 @@ func TestLoadTrimsStringEnvironmentValues(t *testing.T) {
 		t.Fatalf("Load devolvió error: %v", err)
 	}
 
-	if cfg.Port != "9090" {
-		t.Errorf("Port = %q, se esperaba 9090", cfg.Port)
+	checks := []struct {
+		name, got, want string
+	}{
+		{"Port", cfg.Port, "9090"},
+		{"StatsAPIURL", cfg.StatsAPIURL, "http://localhost:3000"},
+		{"DemoUsername", cfg.DemoUsername, "demo"},
+		{"JWTIssuer", cfg.JWTIssuer, "interseguro-qr-api"},
 	}
-	if cfg.StatsAPIURL != "http://localhost:3000/" {
-		t.Errorf("StatsAPIURL = %q", cfg.StatsAPIURL)
+	for _, c := range checks {
+		if c.got != c.want {
+			t.Errorf("%s = %q, se esperaba %q", c.name, c.got, c.want)
+		}
 	}
-	if cfg.DemoUsername != "demo" {
-		t.Errorf("DemoUsername = %q", cfg.DemoUsername)
+}
+
+// TestLoadValidatesStatsURL comprueba que una URL mal formada se detecte al
+// arrancar. Sin esta validación, el servicio levantaría sin problemas y el
+// error solo aparecería en el primer request que necesite el upstream.
+func TestLoadValidatesStatsURL(t *testing.T) {
+	cases := []struct {
+		name     string
+		url      string
+		wantFail bool
+	}{
+		{"http", "http://api-node:3000", false},
+		{"https", "https://stats.ejemplo.cl", false},
+		{"con ruta", "http://localhost:3000/base", false},
+		{"sin esquema", "localhost:3000", true},
+		{"solo el host", "api-node", true},
+		{"esquema no soportado", "ftp://localhost:3000", true},
+		// Una variable ausente no es un error: cae al valor por defecto
+		// documentado en .env.example, que sirve para desarrollo local.
+		{"vacía usa el valor por defecto", "", false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			env := validEnv()
+			env["STATS_API_URL"] = tc.url
+			setEnv(t, env)
+
+			_, err := Load()
+
+			if tc.wantFail && err == nil {
+				t.Errorf("se aceptó la URL inválida %q", tc.url)
+			}
+			if !tc.wantFail && err != nil {
+				t.Errorf("se rechazó la URL válida %q: %v", tc.url, err)
+			}
+		})
 	}
 }
 
@@ -129,11 +177,6 @@ func TestLoadRejectsInvalidConfig(t *testing.T) {
 		{
 			name:     "sin DEMO_PASSWORD",
 			mutate:   func(e map[string]string) { delete(e, "DEMO_PASSWORD") },
-			wantFail: true,
-		},
-		{
-			name:     "URL de estadísticas inválida",
-			mutate:   func(e map[string]string) { e["STATS_API_URL"] = "localhost:3000" },
 			wantFail: true,
 		},
 		{

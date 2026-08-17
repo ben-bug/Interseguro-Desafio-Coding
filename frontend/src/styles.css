@@ -1,59 +1,102 @@
 /* ==========================================================================
    Sistema visual
-   --------------------------------------------------------------------------
-   La página se organiza alrededor de una sola idea: el resultado es la ecuación
-   A = Q · R, y se dibuja como tal. De ahí salen las dos decisiones de color y
-   tipografía: Q y R llevan acentos distintos porque son piezas distintas de la
-   descomposición, y todo lo numérico va en monoespaciada tabular porque la
-   alineación de las columnas es información, no estética.
+
+   Dos ideas gobiernan el diseño.
+
+   La primera: el resultado es una ecuación, y se dibuja como tal. A = Q · R se
+   presenta con delimitadores de matriz reales, y cada celda se sombrea según su
+   magnitud, de modo que la estructura del resultado —el triángulo de ceros de
+   R, la ortogonalidad de Q— se ve antes de leer un solo número.
+
+   La segunda: esto es una herramienta de trabajo, no una página de producto. La
+   pantalla se organiza para que el editor y el resultado quepan juntos, y el
+   color se reserva para lo que significa algo. El azul institucional viste el
+   marco; Q y R llevan acentos propios porque son piezas distintas de la
+   descomposición, y esa distinción es información.
    ========================================================================== */
 
 :root {
-  --ink: #14161d;
-  --ink-soft: #565d70;
-  --ink-faint: #9096a6;
+  /* --- Marco institucional ------------------------------------------------
+     El azul es el color corporativo de Interseguro y viste el chrome de la
+     aplicación: cabecera, foco, acciones primarias. El magenta queda para la
+     acción principal, que es el patrón de sus propias llamadas a la acción. */
+  --brand: #0855c4;
+  --brand-strong: #06429a;
+  --brand-tint: #eef3fc;
+  --action: #df0086;
+  --action-strong: #b80070;
 
-  --paper: #f7f8fb;
-  --surface: #ffffff;
-  --line: #e3e4ea;
-
-  /* Los dos factores de la descomposición. Índigo y verde azulado difieren
-     tanto en tono como en luminosidad, de modo que siguen distinguiéndose sin
-     percepción del color. Se mantienen ajenos a la marca a propósito: son
-     semántica del dominio (QR), no identidad visual. */
+  /* --- Acentos del dominio ------------------------------------------------
+     Deliberadamente ajenos a la marca: no son identidad visual sino semántica.
+     Índigo y verde azulado difieren en tono y en luminosidad, así que siguen
+     distinguiéndose sin percepción del color. */
   --q: #4b3ec4;
   --r: #00736a;
-  --input: #6a7183;
-  --danger: #b0322a;
+  --input: #5b6478;
 
-  /* Identidad Interseguro (interseguro.pe/seguro-de-vida/rumbo), tomada de la
-     página pública: azul de marca para el chrome de la UI (header, hero, foco,
-     enlaces) y magenta como color de acción, igual que sus CTA ("Cotizar
-     ahora"). Separado de --q/--r por la razón de arriba. */
-  --brand: #0855c4;
-  --brand-ink: #454a6c;
-  --brand-cta: #df0086;
-  --brand-cta-hover: #b80070;
-  /* Fondo con tinte muy sutil, igual al que usan para alternar secciones
-     (home__section-benefits: rgba(241,244,249,.55)) — NO un bloque sólido. */
-  --section-tint: rgb(241 244 249 / 55%);
+  /* --- Superficies y texto ------------------------------------------------ */
+  --ink: #16192b;
+  --ink-soft: #4e5568;
+  --ink-faint: #858da3;
 
-  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
-  /* Plus Jakarta Sans sustituye a Sofia (la tipografía real de interseguro.pe,
-     de licencia comercial): misma familia geométrica-humanista y calidez
-     redondeada, cargada en index.html. */
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --paper: #f5f7fb;
+  --surface: #ffffff;
+  --line: #e2e6ef;
+  --line-soft: #eef1f7;
+
+  --danger: #b3261e;
+  --danger-tint: #fdf0ef;
+
+  /* --- Tipografía ---------------------------------------------------------
+     Pila del sistema en lugar de una fuente descargada: aparece de inmediato,
+     sin parpadeo, y no ata la aplicación a un servicio externo. Se listan las
+     familias de interfaz de cada plataforma en orden. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Los números van en monoespaciada: en una matriz, la alineación de las
+     columnas es información, no estética. */
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', 'JetBrains Mono', Menlo,
+    Consolas, monospace;
 
   --radius: 10px;
-  /* rgba(69,74,108,.08) es la sombra real que usan en su navbar y tarjetas
-     (mismo tono que --brand-ink), no un tinte azul inventado. */
-  --shadow: 0 4px 16px rgb(69 74 108 / 8%);
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 2px rgb(22 25 43 / 5%);
+  --shadow: 0 4px 16px rgb(22 25 43 / 8%);
 }
 
-/* interseguro.pe no tiene modo oscuro — es siempre claro, blanco con acentos
-   azules. Para que la app se vea igual a la marca en cualquier equipo, NO
-   seguimos prefers-color-scheme: el tema claro de :root de arriba se usa
-   siempre, sin importar la configuración del sistema operativo. */
+/* Modo oscuro.
+   Se respeta la preferencia del sistema: esto es una herramienta técnica que se
+   usa en jornadas largas y en entornos de luz muy distintos, no la web pública
+   de la marca. El azul institucional se aclara lo necesario para mantener el
+   contraste sobre fondo oscuro sin dejar de ser reconocible. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand: #7ba6f5;
+    --brand-strong: #a6c3f8;
+    --brand-tint: #182238;
+    --action: #ff5cb8;
+    --action-strong: #ff8ccd;
+
+    --q: #9b90ff;
+    --r: #3ecdbd;
+    --input: #9aa3b8;
+
+    --ink: #e9ebf2;
+    --ink-soft: #a3aabd;
+    --ink-faint: #6d7488;
+
+    --paper: #0e1018;
+    --surface: #161a26;
+    --line: #262c3b;
+    --line-soft: #1e2331;
+
+    --danger: #ff8b80;
+    --danger-tint: #2a1a1c;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow: 0 4px 16px rgb(0 0 0 / 45%);
+  }
+}
 
 *,
 *::before,
@@ -61,21 +104,20 @@
   box-sizing: border-box;
 }
 
-/* Salvaguarda: con escalado de pantalla no entero (125%, 150% en Windows) el
-   navegador puede redondear un elemento medio píxel hacia arriba y disparar
-   una barra de scroll horizontal aunque el layout esté bien calculado. Esto
-   la elimina de raíz, en toda la página, sin depender de encontrar el
-   redondeo exacto que la causa. */
+/* Con escalado de pantalla no entero (125 %, 150 % en Windows) el navegador
+   puede redondear un elemento medio píxel hacia arriba y disparar una barra de
+   desplazamiento horizontal aunque el cálculo del layout sea correcto. Acotarlo
+   aquí lo evita de raíz, sin tener que perseguir el redondeo concreto. */
 html {
   overflow-x: hidden;
 }
 
 body {
   margin: 0;
-  overflow-x: hidden;
   max-width: 100vw;
+  overflow-x: hidden;
   color: var(--ink);
-  background-color: var(--paper);
+  background: var(--paper);
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.55;
@@ -85,10 +127,11 @@ body {
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
+  border-radius: 3px;
 }
 
 /* --------------------------------------------------------------------------
-   Cabecera
+   Cabecera y marca
    -------------------------------------------------------------------------- */
 
 .masthead {
@@ -96,64 +139,68 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  flex-wrap: wrap;
-  padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
+  padding: 0.75rem clamp(1rem, 4vw, 2.5rem);
   background: var(--surface);
-  /* Su navbar real es fija, blanca, separada por sombra en vez de borde —
-     rgba(69,74,108,.08) 0 4px 16px, el mismo brand-ink usado como tinte. */
-  box-shadow: 0 4px 16px rgb(69 74 108 / 8%);
+  /* Separada por sombra y no por borde: la barra queda fija al desplazar y la
+     sombra comunica que el contenido pasa por debajo. */
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.masthead__logo {
-  height: 1.7rem;
-  width: auto;
-  display: block;
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
 }
 
+.wordmark__symbol {
+  flex: none;
+  color: var(--brand);
+}
+
+.wordmark__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.wordmark__owner {
+  color: var(--brand);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.wordmark__product {
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* La etiqueta larga del botón de salida es la predeterminada; la corta aparece
+   solo cuando el ancho aprieta. */
 .signout__short {
   display: none;
 }
 
-@media (max-width: 480px) {
-  .workspace-page .masthead {
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-    padding-inline: 1rem;
-  }
-
-  .workspace-page .masthead__logo {
-    height: 1.35rem;
-    min-width: 0;
-  }
-
-  .workspace-page .button--ghost {
-    padding-inline: 0.75rem;
-  }
-
-  .signout__long {
-    display: none;
-  }
-
-  .signout__short {
-    display: inline;
-  }
-}
-
 /* --------------------------------------------------------------------------
-   Hero — su patrón real es texto azul de marca sobre fondo claro/blanco, NO
-   un bloque de color sólido (eso solo lo usan en botones y acentos chicos).
+   Encabezado de contenido
    -------------------------------------------------------------------------- */
 
 .hero {
-  background: var(--section-tint);
-  padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 4vw, 2.5rem);
+  padding: clamp(1rem, 2.5vw, 1.75rem) clamp(1rem, 4vw, 2.5rem);
+  background: var(--brand-tint);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .hero--compact {
-  padding: clamp(0.7rem, 1.5vw, 1rem) clamp(1rem, 4vw, 2.5rem);
+  padding-block: clamp(0.6rem, 1.5vw, 0.9rem);
 }
 
 .hero__inner {
@@ -162,201 +209,81 @@ body {
 }
 
 .hero__eyebrow {
-  margin: 0 0 0.6rem;
-  color: var(--brand-cta);
-  font-size: 0.72rem;
+  margin: 0 0 0.4rem;
+  color: var(--action);
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .hero--compact .hero__eyebrow {
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 
 .hero__title {
   margin: 0;
   color: var(--brand);
-  font-size: clamp(1.6rem, 4vw, 2.5rem);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: clamp(1.5rem, 4vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .hero--compact .hero__title {
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
 }
 
 .hero__subtitle {
   max-width: 60ch;
   margin: 0.5rem 0 0;
-  color: var(--brand-ink);
+  color: var(--ink-soft);
   font-size: 0.95rem;
-  line-height: 1.5;
 }
 
 /* --------------------------------------------------------------------------
-   Estructura
+   Estructura de página
    -------------------------------------------------------------------------- */
 
 .shell {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem);
+  padding: clamp(1rem, 2.5vw, 1.75rem) clamp(1rem, 3vw, 2rem);
 }
 
-/* El acceso ocupa exactamente el viewport. El shell recibe solo el espacio
-   restante después de la cabecera y el hero, evitando que sus alturas se
-   sumen a 100vh y creen scroll vertical. */
+/* La pantalla de acceso ocupa el alto exacto de la ventana: la cabecera y el
+   encabezado toman lo suyo y el formulario se centra en lo que sobra, sin que
+   las tres alturas se sumen y produzcan desplazamiento vertical.
+   `dvh` contempla la barra de direcciones de los navegadores móviles, que
+   cambia de alto al desplazar. */
 .login-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .shell--login {
   display: grid;
   flex: 1;
-  align-items: safe center;
-  justify-items: center;
+  place-items: safe center;
   min-height: 0;
-  width: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-block: clamp(0.75rem, 2vh, 1.25rem);
-}
-
-/* La calculadora es una herramienta de trabajo: en escritorio prioriza que
-   editor y resultado quepan en la primera pantalla. En anchos pequeños el
-   grid pasa a una columna y el documento conserva su scroll natural. */
-.shell--workspace {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  padding-block: clamp(0.75rem, 2vh, 1.25rem);
-}
-
-.workspace-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-}
-
-.footer {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.75rem clamp(1rem, 4vw, 2.5rem) 2.5rem;
-  border-top: 1px solid var(--line);
-  text-align: center;
-}
-
-.footer__brand {
-  margin: 0;
-  color: var(--brand-ink);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.footer__legal {
-  margin: 0.35rem 0 0;
-  color: var(--ink-faint);
-  font-size: 0.75rem;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  gap: 1.5rem;
-  align-items: stretch;
-  height: 100%;
-  min-height: 0;
-}
-
-.layout > .panel {
-  height: 100%;
-  min-height: 0;
-  overflow: auto;
-}
-
-@media (max-width: 760px) {
-  .shell--workspace {
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-    height: auto;
-  }
-
-  .layout > .panel {
-    height: auto;
-    overflow: visible;
-  }
-
-  .panel--placeholder {
-    display: none;
-  }
-}
-
-@media (max-height: 640px) {
-  .login-page .masthead {
-    padding-block: 0.55rem;
-  }
-
-  .login-page .masthead__logo {
-    height: 1.45rem;
-  }
-
-  .login-page .hero {
-    padding-block: 0.55rem;
-  }
-
-  .login-page .hero__eyebrow {
-    margin-bottom: 0.15rem;
-  }
-
-  .login-page .hero__title {
-    font-size: clamp(1.25rem, 3vw, 1.6rem);
-  }
-
-  .login-page .hero__subtitle {
-    display: none;
-  }
-
-  .login-page .gate__card {
-    gap: 0.6rem;
-    padding: 1rem;
-  }
-
-  .login-page .gate__title {
-    font-size: 1.1rem;
-  }
-
-  .login-page .gate__lead {
-    margin-top: -0.25rem;
-  }
-
-  .workspace-page .editor__examples {
-    display: none;
-  }
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
 }
 
 .panel {
-  /* Los ítems de grid heredan min-width:auto por defecto, que se calcula del
-     contenido mínimo de sus hijos. Sin esto, una matriz ancha (celdas con
-     white-space:nowrap) empuja el panel — y con él la página entera — más
-     allá del viewport en vez de quedar contenida por el scroll interno de
-     .equation. Es la causa real de que el sitio no fuera responsivo. */
-  min-width: 0;
   padding: 1.25rem;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
 }
 
 .panel--input {
@@ -365,25 +292,26 @@ body {
   align-content: start;
 }
 
-.shell--workspace .panel {
-  padding: clamp(0.85rem, 2vh, 1.15rem);
+.panel--output {
+  min-width: 0;
+  overflow: hidden;
 }
 
-.shell--workspace .panel--input {
-  gap: clamp(0.7rem, 1.6vh, 1rem);
-}
-
-.shell--workspace .editor {
-  gap: clamp(0.6rem, 1.5vh, 0.85rem);
+/* Sin resultado, el panel derecho solo sostiene el mensaje inicial: se le quita
+   el marco para que no parezca un contenedor vacío esperando algo. */
+.panel--placeholder {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
 }
 
 .panel__title {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink-faint);
 }
 
 /* --------------------------------------------------------------------------
@@ -398,11 +326,11 @@ body {
 .editor__dims {
   display: flex;
   align-items: flex-end;
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
 .editor__times {
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.45rem;
   color: var(--ink-faint);
   font-family: var(--font-mono);
 }
@@ -410,14 +338,15 @@ body {
 .field {
   display: grid;
   gap: 0.3rem;
+  min-width: 0;
 }
 
 .field__label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink-faint);
 }
 
 .field__input {
@@ -426,7 +355,7 @@ body {
   color: var(--ink);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 0.9rem;
 }
@@ -435,14 +364,13 @@ body {
   width: 100%;
 }
 
+.field__input:hover:not(:disabled) {
+  border-color: var(--ink-faint);
+}
+
 .editor__grid {
   display: grid;
   gap: 3px;
-  /* Igual que .equation: con matrices grandes (hasta 12×12) las celdas no
-     deben forzar el ancho de la página, sino desplazarse dentro de su propio
-     contenedor. */
-  overflow-x: auto;
-  padding-bottom: 0.2rem;
 }
 
 .editor__cell {
@@ -451,7 +379,7 @@ body {
   color: var(--ink);
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
@@ -459,7 +387,7 @@ body {
 }
 
 .editor__cell:hover:not(:disabled) {
-  border-color: var(--ink-faint);
+  border-color: var(--brand);
 }
 
 .editor__examples {
@@ -468,41 +396,17 @@ body {
 }
 
 .editor__examples-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink-faint);
 }
 
 .editor__examples-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-}
-
-.chip {
-  padding: 0.35rem 0.75rem;
-  color: var(--brand-ink);
-  background: color-mix(in oklab, var(--brand) 8%, var(--surface));
-  border: 1px solid color-mix(in oklab, var(--brand) 22%, transparent);
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-
-.chip:hover:not(:disabled) {
-  color: #fff;
-  background: var(--brand);
-  border-color: var(--brand);
-}
-
-.chip:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* --------------------------------------------------------------------------
@@ -518,11 +422,22 @@ body {
 }
 
 .segmented {
-  display: grid;
-  gap: 0.3rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.9rem;
   margin: 0;
   padding: 0;
   border: none;
+}
+
+.segmented legend {
+  /* La leyenda de un fieldset no participa del flujo flex, así que se saca a
+     su propia línea con ancho completo. */
+  float: left;
+  width: 100%;
+  margin-bottom: 0.3rem;
+  padding: 0;
 }
 
 .segmented__option {
@@ -533,31 +448,28 @@ body {
   cursor: pointer;
 }
 
-.segmented__option + .segmented__option {
-  margin-left: 0.75rem;
+.segmented__option input {
+  accent-color: var(--brand);
 }
 
 .button {
   padding: 0.55rem 1.1rem;
   border: 1px solid transparent;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
 .button--primary {
   color: #fff;
-  background: var(--brand-cta);
-  /* Sus botones reales ("Cotizar ahora", "¡Lo quiero!") usan 5-8px, nunca
-     píldora completa — eso lo reservan para el WhatsApp flotante. */
-  border-radius: 8px;
+  background: var(--action);
 }
 
 .button--primary:hover:not(:disabled) {
-  background: var(--brand-cta-hover);
+  background: var(--action-strong);
 }
 
 .button--ghost {
@@ -566,7 +478,7 @@ body {
   border-color: var(--line);
 }
 
-.button--ghost:hover {
+.button--ghost:hover:not(:disabled) {
   color: var(--brand);
   border-color: var(--brand);
 }
@@ -580,6 +492,27 @@ body {
   cursor: progress;
 }
 
+.chip {
+  padding: 0.3rem 0.65rem;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chip:hover:not(:disabled) {
+  color: var(--brand);
+  border-color: var(--brand);
+}
+
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* --------------------------------------------------------------------------
    La ecuación: A = Q · R
    -------------------------------------------------------------------------- */
@@ -588,8 +521,8 @@ body {
   display: flex;
   align-items: center;
   gap: clamp(0.5rem, 2vw, 1.25rem);
-  /* Las matrices grandes se desplazan dentro de su contenedor en lugar de
-     forzar el desplazamiento horizontal de toda la página. */
+  /* Una matriz grande se desplaza dentro de su propio contenedor en lugar de
+     empujar el ancho de toda la página. */
   overflow-x: auto;
   padding-bottom: 0.5rem;
 }
@@ -598,7 +531,7 @@ body {
   flex: none;
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 300;
 }
 
@@ -643,8 +576,9 @@ body {
   gap: 4px;
 }
 
-/* Los corchetes se dibujan con bordes en lugar de escribirse como caracteres:
-   así crecen con la altura real de la matriz, como en la notación impresa. */
+/* Los delimitadores se dibujan con bordes en lugar de escribirse como
+   caracteres: así crecen con la altura real de la matriz, como en la notación
+   impresa. */
 .matrix__bracket {
   flex: none;
   width: 7px;
@@ -667,10 +601,10 @@ body {
 
 .matrix__cell {
   padding: 0.3rem 0.5rem;
-  /* La intensidad la fija MatrixView según |valor| respecto del mayor de la
-     matriz: el sombreado hace visible la estructura antes de leer un número. */
+  /* La intensidad la calcula MatrixView a partir de |valor| respecto del mayor
+     de esa matriz: el sombreado revela la estructura antes de leer un número. */
   background: color-mix(in oklab, var(--accent) calc(var(--cell-intensity, 0) * 20%), transparent);
-  border-radius: 2px;
+  border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
@@ -693,12 +627,6 @@ body {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .matrix__cell {
-    animation: none;
-  }
-}
-
 /* --------------------------------------------------------------------------
    Metadatos del cálculo
    -------------------------------------------------------------------------- */
@@ -706,24 +634,24 @@ body {
 .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  margin: 1.5rem 0 0;
+  gap: 1.25rem;
+  margin: 1.25rem 0 0;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
 }
 
 .meta__item dt {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .meta__item dd {
   margin: 0.15rem 0 0;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
-  font-weight: 600;
 }
 
 /* --------------------------------------------------------------------------
@@ -733,7 +661,7 @@ body {
 .stats {
   display: grid;
   gap: 1rem;
-  margin-top: 1.75rem;
+  margin-top: 1.5rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--line);
 }
@@ -746,13 +674,18 @@ body {
   flex-wrap: wrap;
 }
 
+.stats__origin {
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+}
+
 .stats__overall {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -764,9 +697,9 @@ body {
 }
 
 .stat__label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
@@ -784,7 +717,7 @@ body {
   gap: 1rem;
   padding: 0.7rem 0.85rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
 }
 
 .verdict--yes {
@@ -807,6 +740,8 @@ body {
   color: var(--r);
 }
 
+/* La tabla de desglose se desplaza dentro de su contenedor: con seis columnas
+   no cabe en un teléfono, y sin esto ensancharía la página entera. */
 .breakdown-scroll {
   overflow-x: auto;
 }
@@ -819,9 +754,9 @@ body {
 
 .breakdown__caption {
   margin-bottom: 0.4rem;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-faint);
   text-align: left;
@@ -832,21 +767,22 @@ body {
   padding: 0.45rem 0.6rem;
   border-bottom: 1px solid var(--line);
   text-align: right;
-  font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .breakdown thead th {
   font-family: var(--font-sans);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .breakdown__name {
-  text-align: left !important;
+  text-align: left;
   font-weight: 700;
   font-style: italic;
 }
@@ -877,15 +813,16 @@ body {
   display: grid;
   gap: 1rem;
   place-items: center;
-  padding: clamp(2rem, 8vw, 5rem) 1rem;
+  padding: clamp(2rem, 7vw, 4.5rem) 1rem;
   text-align: center;
 }
 
 .placeholder__equation {
   margin: 0;
-  color: var(--ink-faint);
+  color: var(--brand);
+  opacity: 0.35;
   font-family: var(--font-mono);
-  font-size: clamp(2rem, 7vw, 3.25rem);
+  font-size: clamp(1.9rem, 6vw, 3rem);
   font-weight: 700;
   font-style: italic;
   letter-spacing: -0.05em;
@@ -903,9 +840,9 @@ body {
   gap: 0.3rem;
   padding: 0.7rem 0.85rem;
   color: var(--danger);
-  background: color-mix(in oklab, var(--danger) 8%, transparent);
+  background: var(--danger-tint);
   border: 1px solid color-mix(in oklab, var(--danger) 35%, transparent);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font-size: 0.85rem;
 }
 
@@ -928,9 +865,9 @@ body {
 
 .gate__card {
   display: grid;
-  gap: 0.85rem;
+  gap: 1rem;
   width: min(100%, 26rem);
-  padding: 1.5rem;
+  padding: clamp(1.25rem, 4vw, 1.85rem);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -939,7 +876,8 @@ body {
 
 .gate__title {
   margin: 0;
-  font-size: 1.3rem;
+  color: var(--brand);
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -961,31 +899,103 @@ body {
   font-size: 0.95em;
 }
 
+/* ==========================================================================
+   Adaptación a la pantalla
+
+   Los cortes no son anchos redondos elegidos por costumbre: cada uno responde
+   a un punto en que un elemento concreto deja de caber.
+   ========================================================================== */
+
+/* A partir de aquí las dos columnas del área de trabajo no conviven: el panel
+   de entrada necesita 300 px y el resultado deja de tener espacio útil. */
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Sin resultado que mostrar, el hueco vacío solo aleja el botón del
+     resultado; se oculta hasta que haya algo que poner. */
+  .panel--placeholder {
+    display: none;
+  }
+}
+
+/* En pantallas estrechas la cabecera compite por el ancho con el botón de
+   salida, y el encabezado de contenido consume altura que necesita el editor. */
+@media (max-width: 480px) {
+  .masthead {
+    gap: 0.5rem;
+    padding-inline: 1rem;
+  }
+
+  .wordmark__product {
+    display: none;
+  }
+
+  .signout__long {
+    display: none;
+  }
+
+  .signout__short {
+    display: inline;
+  }
+
+  .button--ghost {
+    padding-inline: 0.75rem;
+  }
+
+  .hero__subtitle {
+    font-size: 0.88rem;
+  }
+
+  .panel {
+    padding: 1rem;
+  }
+
+  /* Las medidas pasan a dos columnas: con cinco en fila cada una queda
+     demasiado angosta para su número. */
+  .stats__overall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Pantallas bajas —un teléfono en horizontal, una ventana reducida—, donde el
+   problema es la altura y no el ancho. */
+@media (max-height: 640px) {
+  .hero {
+    padding-block: 0.6rem;
+  }
+
+  .hero__subtitle {
+    display: none;
+  }
+}
+
 /* --------------------------------------------------------------------------
    Interacción táctil
-   --------------------------------------------------------------------------
-   `pointer: coarse` detecta el dispositivo señalador, no el ancho de pantalla.
-   Es lo correcto acá: una tablet de 1024 px se maneja con el dedo y necesita
+
+   `pointer: coarse` describe el dispositivo señalador, no el tamaño de la
+   ventana. Es lo correcto: una tablet ancha se maneja con el dedo y necesita
    estos tamaños, mientras que una ventana de escritorio angosta se maneja con
    el ratón y no los necesita.
 
-   El mínimo de 44 px viene de la WCAG 2.5.5 y de las guías de interfaz de iOS
-   y Android. Importa especialmente en el editor de la matriz: escribir en
-   celdas de 30 px con el dedo hace que se falle la celda contigua, y ese es el
-   uso principal de la aplicación.
+   El mínimo de 44 px viene de la WCAG 2.5.5 y de las guías de iOS y Android.
+   Importa sobre todo en el editor: escribir en celdas de 30 px con el dedo hace
+   fallar la celda contigua, y ese es el uso principal de la herramienta.
    -------------------------------------------------------------------------- */
 @media (pointer: coarse) {
   .editor__cell,
   .field__input,
   .button,
-  .chip {
+  .chip,
+  .segmented__option {
     min-height: 44px;
   }
 
   .editor__cell,
   .field__input {
-    /* 16 px es el umbral bajo el cual Safari en iOS hace zoom automático al
-       enfocar un campo, lo que descoloca toda la vista. */
+    /* Por debajo de 16 px, Safari en iOS amplía la página al enfocar un campo y
+       descoloca toda la vista. */
     font-size: 16px;
   }
 
@@ -999,25 +1009,27 @@ body {
     padding-block: 0.5rem;
   }
 
-  /* En un radio o una casilla, el objetivo real es la etiqueta que lo envuelve:
-     el control nativo mide unos 13 px y no se puede agrandar de forma fiable
-     entre navegadores. Se le da la altura mínima a la etiqueta. */
-  .segmented__option {
-    min-height: 44px;
-  }
-
-  /* Separación entre celdas: con el dedo, dos objetivos contiguos sin holgura
-     se tocan por error aunque cada uno cumpla el tamaño mínimo. */
+  /* Con el dedo, dos objetivos contiguos sin holgura se tocan por error aunque
+     cada uno cumpla el tamaño mínimo. */
   .editor__grid {
     gap: 5px;
   }
 
-  /* Las celdas de las matrices de resultado no son interactivas, pero sí deben
-     poder recorrerse con el dedo sin activar el gesto de retroceso del
-     navegador al llegar al borde del contenedor. */
+  /* Al llegar al borde de un contenedor desplazable, el navegador interpreta el
+     gesto como «volver atrás»; esto lo mantiene dentro del contenedor. */
   .equation,
   .breakdown-scroll {
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix__cell {
+    animation: none;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
   }
 }

@@ -4,7 +4,7 @@ import { LoginPanel } from './components/LoginPanel';
 import { MatrixEditor } from './components/MatrixEditor';
 import { MatrixView } from './components/MatrixView';
 import { StatsPanel } from './components/StatsPanel';
-import interseguroLogo from './assets/descarga.png';
+import { Wordmark } from './components/Wordmark';
 
 /** Matriz inicial: el ejemplo canónico de la literatura sobre QR. */
 const INITIAL_MATRIX: Matrix = [
@@ -143,12 +143,17 @@ export function App() {
 function Masthead({ onSignOut }: { onSignOut?: () => void }) {
   return (
     <header className="masthead">
-      <img className="masthead__logo" src={interseguroLogo} alt="Interseguro" />
+      <Wordmark />
 
       {onSignOut && (
         <button className="button button--ghost" type="button" onClick={onSignOut}>
+          {/* La etiqueta se acorta en pantallas angostas, donde el ancho de la
+              cabecera es escaso; el texto completo sigue siendo el que leen los
+              lectores de pantalla en cualquier tamaño. */}
           <span className="signout__long">Cerrar sesión</span>
-          <span className="signout__short">Salir</span>
+          <span className="signout__short" aria-hidden="true">
+            Salir
+          </span>
         </button>
       )}
     </header>
@@ -156,9 +161,12 @@ function Masthead({ onSignOut }: { onSignOut?: () => void }) {
 }
 
 /**
- * Franja de marca bajo la cabecera, con el mismo azul de interseguro.pe. Es lo
- * que ancla visualmente la app al resto del sitio: sin ella, el panel de
- * cálculo podría ser la herramienta de cualquier proveedor.
+ * Encabezado de contenido bajo la barra de marca.
+ *
+ * Nombra la herramienta y lo que hace. En la pantalla de acceso se muestra
+ * completo, porque ahí es lo único que explica dónde ha llegado el usuario; una
+ * vez dentro se compacta a una línea, para no robarle altura al área de trabajo,
+ * que es donde ocurre todo.
  */
 function Hero({ compact = false }: { compact?: boolean }) {
   return (

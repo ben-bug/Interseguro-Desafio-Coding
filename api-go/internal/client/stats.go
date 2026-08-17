@@ -93,7 +93,12 @@ type StatsClient struct {
 // entrante, que se propaga hasta acá.
 func NewStatsClient(baseURL string, timeout time.Duration, maxRetries int, logger *slog.Logger) *StatsClient {
 	return &StatsClient{
-		baseURL: strings.TrimSuffix(strings.TrimSpace(baseURL), "/"),
+		// TrimRight y no TrimSuffix: este último quita una sola barra, y una URL
+		// copiada a mano puede traer varias. Cada barra sobrante produciría
+		// rutas como `…:3000//api/v1/statistics`, que algunos servidores
+		// rechazan con 404. El recorte de espacios cubre el caso de una variable
+		// de entorno con un salto de línea o un espacio al final.
+		baseURL: strings.TrimRight(strings.TrimSpace(baseURL), "/"),
 		httpClient: &http.Client{
 			Timeout: timeout,
 			Transport: &http.Transport{
