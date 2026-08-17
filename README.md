@@ -173,7 +173,16 @@ El detalle y la justificación de cada una está en [docs/DECISIONS.md](docs/DEC
 
 ## Despliegue en la nube
 
-Las imágenes están listas para cualquier plataforma que ejecute contenedores. Los pasos concretos para Google Cloud Run, Render y Fly.io están en [docs/DEPLOY.md](docs/DEPLOY.md).
+Hay dos formas de desplegar, según lo que ofrezca la plataforma:
+
+| Forma | Archivo | Para |
+| --- | --- | --- |
+| **Todo en uno** | `Dockerfile` (raíz) | Railway, Heroku y demás plataformas de un solo puerto público |
+| **Servicios separados** | `docker-compose.yml` | Cloud Run, Render, Fly.io — preferible: cada servicio escala y falla por separado |
+
+**La vía recomendada es Railway**, y está lista para usarse: `railway.json` deja configurados el chequeo de salud y la política de reinicio, así que basta con conectar el repositorio y definir dos variables (`JWT_SECRET` y `DEMO_PASSWORD`). El paso a paso está en [docs/DEPLOY.md](docs/DEPLOY.md), junto con Cloud Run, Render y Fly.io.
+
+> Si esas dos variables faltan, el contenedor **se niega a arrancar** y dice cuáles son. Es deliberado: un valor por defecto para `JWT_SECRET` sería un secreto visible en el repositorio, y cualquiera podría firmar tokens válidos contra la instancia desplegada.
 
 | Imagen | Tamaño |
 | --- | --- |
@@ -181,4 +190,4 @@ Las imágenes están listas para cualquier plataforma que ejecute contenedores. 
 | `frontend` | 92,9 MB |
 | `api-node` | 254 MB |
 
-Los tres contenedores corren sin privilegios de root, declaran `HEALTHCHECK` y hacen apagado ordenado ante `SIGTERM`.
+Todos los contenedores corren sin privilegios de root, declaran `HEALTHCHECK` y hacen apagado ordenado ante `SIGTERM`. En la imagen todo en uno, el `entrypoint.sh` vigila los tres procesos y hace caer el contenedor si alguno muere, para que la plataforma lo reinicie en lugar de dejarlo sirviendo errores.

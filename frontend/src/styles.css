@@ -960,3 +960,64 @@ body {
   font-family: var(--font-mono);
   font-size: 0.95em;
 }
+
+/* --------------------------------------------------------------------------
+   Interacción táctil
+   --------------------------------------------------------------------------
+   `pointer: coarse` detecta el dispositivo señalador, no el ancho de pantalla.
+   Es lo correcto acá: una tablet de 1024 px se maneja con el dedo y necesita
+   estos tamaños, mientras que una ventana de escritorio angosta se maneja con
+   el ratón y no los necesita.
+
+   El mínimo de 44 px viene de la WCAG 2.5.5 y de las guías de interfaz de iOS
+   y Android. Importa especialmente en el editor de la matriz: escribir en
+   celdas de 30 px con el dedo hace que se falle la celda contigua, y ese es el
+   uso principal de la aplicación.
+   -------------------------------------------------------------------------- */
+@media (pointer: coarse) {
+  .editor__cell,
+  .field__input,
+  .button,
+  .chip {
+    min-height: 44px;
+  }
+
+  .editor__cell,
+  .field__input {
+    /* 16 px es el umbral bajo el cual Safari en iOS hace zoom automático al
+       enfocar un campo, lo que descoloca toda la vista. */
+    font-size: 16px;
+  }
+
+  .editor__cell {
+    padding-block: 0.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding-block: 0.5rem;
+  }
+
+  /* En un radio o una casilla, el objetivo real es la etiqueta que lo envuelve:
+     el control nativo mide unos 13 px y no se puede agrandar de forma fiable
+     entre navegadores. Se le da la altura mínima a la etiqueta. */
+  .segmented__option {
+    min-height: 44px;
+  }
+
+  /* Separación entre celdas: con el dedo, dos objetivos contiguos sin holgura
+     se tocan por error aunque cada uno cumpla el tamaño mínimo. */
+  .editor__grid {
+    gap: 5px;
+  }
+
+  /* Las celdas de las matrices de resultado no son interactivas, pero sí deben
+     poder recorrerse con el dedo sin activar el gesto de retroceso del
+     navegador al llegar al borde del contenedor. */
+  .equation,
+  .breakdown-scroll {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}

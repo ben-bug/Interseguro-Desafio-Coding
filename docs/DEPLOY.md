@@ -1,8 +1,78 @@
 # Despliegue en la nube
 
-Las tres imágenes son autocontenidas, corren sin privilegios de root, declaran `HEALTHCHECK` y hacen apagado ordenado ante `SIGTERM`. Sirven en cualquier plataforma que ejecute contenedores.
+El proyecto admite dos formas de despliegue, y la elección depende de lo que ofrezca la plataforma:
 
-Este documento cubre tres opciones. Los comandos son ejecutables; requieren una cuenta y credenciales propias.
+| Forma | Archivo | Cuándo usarla |
+| --- | --- | --- |
+| **Todo en uno** | `Dockerfile` (raíz) | Plataformas que exponen un solo puerto público por servicio: Railway, Heroku, Koyeb. Las dos APIs y nginx conviven en un contenedor. |
+| **Servicios separados** | `docker-compose.yml` | Cuando la plataforma permite varios servicios en red privada: Cloud Run, Render, Fly.io. Es la forma preferible: cada servicio escala y falla por separado. |
+
+Todas las imágenes corren sin privilegios de root, declaran `HEALTHCHECK` y hacen apagado ordenado ante `SIGTERM`.
+
+**La opción recomendada para este desafío es Railway** (opción A): es la de menor fricción, tiene plan gratuito y despliega desde el repositorio sin configuración adicional.
+
+---
+
+## Opción A — Railway (recomendada)
+
+Railway detecta el `Dockerfile` de la raíz y construye la imagen todo en uno. El `railway.json` versionado ya deja configurado el chequeo de salud y la política de reinicio, de modo que no hay nada que ajustar en el panel más allá de las variables.
+
+### Pasos
+
+1. En [railway.app](https://railway.app), elegir **New Project → Deploy from GitHub repo** y seleccionar este repositorio.
+2. Railway detecta el `Dockerfile` de la raíz automáticamente. No hace falta tocar la configuración de build.
+3. **Definir las variables de entorno** en *Variables* antes del primer despliegue. Sin ellas el contenedor se niega a arrancar, a propósito:
+
+   | Variable | Valor |
+   | --- | --- |
+   | `JWT_SECRET` | Generar con `openssl rand -base64 48` |
+   | `DEMO_PASSWORD` | La contraseña de acceso que se quiera usar |
+
+   El resto tiene valores por defecto razonables. `PORT` lo inyecta Railway; no hay que definirlo.
+
+4. En *Settings → Networking*, pulsar **Generate Domain** para obtener la URL pública.
+
+### Por qué el arranque falla si faltan las variables
+
+Es deliberado. Un valor por defecto para `JWT_SECRET` sería un secreto presente en el repositorio: cualquiera que lo leyera podría firmar tokens válidos contra la instancia desplegada. El contenedor prefiere no levantar antes que levantar de forma insegura, y el log dice exactamente qué falta:
+
+```
+ERROR: falta definir la(s) variable(s) de entorno: JWT_SECRET DEMO_PASSWORD
+Generar un secreto con:  openssl rand -base64 48
+```
+
+### Qué hace `railway.json`
+
+```json
+"healthcheckPath": "/health",      // Railway espera un 200 antes de enviar tráfico
+"healthcheckTimeout": 60,          // margen para que arranquen los tres procesos
+"restartPolicyType": "ON_FAILURE", // el entrypoint sale con código 1 si cae una API
+"restartPolicyMaxRetries": 5       // evita el bucle infinito de reinicios
+```
+
+La política de reinicio funciona porque el `entrypoint.sh` vigila los tres procesos y hace caer el contenedor entero cuando uno muere. Sin esa supervisión, una API caída dejaría el contenedor «vivo» sirviendo 502 y Railway no lo reiniciaría nunca.
+
+### Verificar el despliegue
+
+Sustituyendo `TU-APP` por el dominio generado:
+
+```bash
+curl -s https://TU-APP.up.railway.app/health
+```
+
+```bash
+curl -s -X POST https://TU-APP.up.railway.app/api/v1/auth/login -H "Content-Type: application/json" -d '{"username":"demo","password":"TU_DEMO_PASSWORD"}'
+```
+
+### Limitaciones de esta forma
+
+Tres procesos en un contenedor es un compromiso con la plataforma, no un ideal de arquitectura. Comparten CPU y memoria, escalan juntos y sus logs se entremezclan en la misma salida. Cuando la plataforma permite servicios separados, `docker-compose.yml` refleja mejor el diseño: la API Node queda sin puerto público y solo la alcanza la API Go por la red interna.
+
+---
+
+## Las otras opciones
+
+Los apartados siguientes despliegan **servicios separados**. Los comandos son ejecutables; requieren una cuenta y credenciales propias.
 
 ---
 
@@ -34,7 +104,7 @@ En Docker Compose la API Node no publica puerto: solo la alcanza la API Go por l
 
 ---
 
-## Opción A — Google Cloud Run
+## Opción B — Google Cloud Run
 
 La mejor opción para este sistema: escala a cero cuando no hay tráfico, cobra por request y acepta contenedores sin cambios.
 
@@ -90,7 +160,7 @@ gcloud run services add-iam-policy-binding interseguro-api-node --region us-cent
 
 ---
 
-## Opción B — Render
+## Opción C — Render
 
 La opción con menos fricción: se conecta al repositorio y despliega solo. Tiene plan gratuito.
 
@@ -143,7 +213,7 @@ Sigue haciendo falta ajustar el `proxy_pass` del `nginx.conf` a la URL pública 
 
 ---
 
-## Opción C — Fly.io
+## Opción D — Fly.io
 
 Útil si interesa desplegar cerca de los usuarios o mantener las instancias siempre activas.
 
