@@ -1,0 +1,18 @@
+# Normalización de finales de línea.
+#
+# El repositorio se trabaja desde Windows, donde git convierte a CRLF al sacar
+# los archivos. Para los scripts que se ejecutan dentro de un contenedor Linux
+# eso es fatal: la línea `#!/bin/sh` con un CR final hace que el kernel busque
+# un intérprete llamado "/bin/sh\r", que no existe.
+*.sh text eol=lf
+entrypoint.sh text eol=lf
+
+# Lo mismo aplica a los archivos que consume Docker o el shell del contenedor.
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+.dockerignore text eol=lf
+docker-compose.yml text eol=lf
+nginx.conf text eol=lf
+
+# El resto se normaliza a LF en el repositorio y git decide en el checkout.
+* text=auto

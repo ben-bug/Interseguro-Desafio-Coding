@@ -101,7 +101,7 @@ func TestLoadTrimsStringEnvironmentValues(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Fatalf("Load devolviÃ³ error: %v", err)
+		t.Fatalf("Load devolvió error: %v", err)
 	}
 
 	if cfg.Port != "9090" {

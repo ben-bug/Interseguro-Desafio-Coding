@@ -99,7 +99,7 @@ func ErrorHandler(c fiber.Ctx, err error) error {
 }
 
 // statusFromError permite que el logger conozca el estado que ErrorHandler
-// escribirÃ¡ despuÃ©s de que la cadena de middleware termine.
+// escribirá después de que la cadena de middleware termine.
 func statusFromError(err error) int {
 	var apiErr *APIError
 	if errors.As(err, &apiErr) {
