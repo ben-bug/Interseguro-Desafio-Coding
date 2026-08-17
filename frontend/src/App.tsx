@@ -207,14 +207,16 @@ function Result({
   decimals: number;
 }) {
   return (
-    <>
-      {/* La clave cambia con cada factorización, lo que fuerza a React a montar
-          de nuevo el bloque y reinicia la cascada. Sin ella, React reutilizaría
-          los mismos nodos al recalcular y la animación solo se vería la primera
-          vez. Se usa el identificador del request y no el resultado completo,
-          de modo que cambiar los decimales no vuelve a animar: solo se anima
-          cuando hay números nuevos que mostrar. */}
-      <div className="equation" key={result.meta.requestId ?? result.meta.durationMs}>
+    // La clave cambia con cada factorización, lo que fuerza a React a montar de
+    // nuevo todo el bloque y reinicia la cascada desde el principio. Sin ella,
+    // React reutilizaría los mismos nodos al recalcular y la animación solo se
+    // vería la primera vez. Envuelve el resultado completo —ecuación, datos del
+    // cálculo y estadísticas— para que la onda los recorra en un solo gesto.
+    // Se usa el identificador del request y no el resultado entero, de modo que
+    // cambiar los decimales no vuelve a animar: solo se anima cuando hay
+    // números nuevos que mostrar.
+    <div className="result" key={result.meta.requestId ?? result.meta.durationMs}>
+      <div className="equation">
         <MatrixView matrix={matrix} symbol="A" accent="input" decimals={decimals} order={0} />
         <span className="equation__operator" aria-label="es igual a" style={{ animationDelay: '150ms' }}>
           =
@@ -255,7 +257,7 @@ function Result({
       </dl>
 
       {result.statistics && <StatsPanel statistics={result.statistics} />}
-    </>
+    </div>
   );
 }
 
