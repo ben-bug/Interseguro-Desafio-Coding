@@ -208,13 +208,19 @@ function Result({
 }) {
   return (
     <>
-      <div className="equation">
-        <MatrixView matrix={matrix} symbol="A" accent="input" decimals={decimals} />
-        <span className="equation__operator" aria-label="es igual a">
+      {/* La clave cambia con cada factorización, lo que fuerza a React a montar
+          de nuevo el bloque y reinicia la cascada. Sin ella, React reutilizaría
+          los mismos nodos al recalcular y la animación solo se vería la primera
+          vez. Se usa el identificador del request y no el resultado completo,
+          de modo que cambiar los decimales no vuelve a animar: solo se anima
+          cuando hay números nuevos que mostrar. */}
+      <div className="equation" key={result.meta.requestId ?? result.meta.durationMs}>
+        <MatrixView matrix={matrix} symbol="A" accent="input" decimals={decimals} order={0} />
+        <span className="equation__operator" aria-label="es igual a" style={{ animationDelay: '150ms' }}>
           =
         </span>
-        <MatrixView matrix={result.q} symbol="Q" accent="q" decimals={decimals} />
-        <span className="equation__operator" aria-label="multiplicado por">
+        <MatrixView matrix={result.q} symbol="Q" accent="q" decimals={decimals} order={1} />
+        <span className="equation__operator" aria-label="multiplicado por" style={{ animationDelay: '340ms' }}>
           ·
         </span>
         <MatrixView
@@ -222,6 +228,7 @@ function Result({
           symbol="R"
           accent="r"
           decimals={decimals}
+          order={2}
           revealTriangle
         />
       </div>

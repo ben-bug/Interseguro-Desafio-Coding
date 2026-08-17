@@ -560,6 +560,7 @@ body {
 }
 
 .equation__operator {
+  animation: fade-in 300ms ease-out backwards;
   flex: none;
   color: var(--ink-faint);
   font-family: var(--font-mono);
@@ -642,7 +643,17 @@ body {
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
-  animation: cell-in 260ms ease-out backwards;
+}
+
+/* La cascada solo se aplica cuando la matriz es lo bastante pequeña; el
+   componente decide y añade la clase. El retraso de cada celda lo fija el
+   propio elemento, escalonado por antidiagonales. */
+.matrix--animated .matrix__cell {
+  animation: cell-in 300ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.matrix--animated .matrix__caption {
+  animation: rise 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* Los ceros bajo la diagonal de R son el resultado del algoritmo, no un dato
@@ -655,7 +666,30 @@ body {
 @keyframes cell-in {
   from {
     opacity: 0;
-    transform: translateY(-3px);
+    /* El desplazamiento es diagonal, en la misma dirección en que avanza el
+       frente de onda: las celdas parecen asentarse en su sitio en lugar de
+       caer todas desde arriba. */
+    transform: translate(-5px, -5px) scale(0.94);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
 }
 
@@ -931,6 +965,64 @@ body {
   font-size: 0.95em;
 }
 
+/* --------------------------------------------------------------------------
+   Entrada de la pantalla de acceso
+
+   Una secuencia corta y en orden de lectura: primero baja la barra de marca,
+   después aparece el encabezado y por último la tarjeta. Escalonarlas da la
+   sensación de que la página se arma sola; lanzarlas a la vez se vería como un
+   simple parpadeo.
+
+   Solo se anima el acceso. Una vez dentro, la aplicación es una herramienta de
+   uso repetido y volver a animar el marco en cada visita cansaría; ahí el
+   movimiento se reserva para lo que de verdad cambia, que son los resultados.
+
+   Todo usa `backwards` para que el estado inicial se aplique antes de que
+   arranque el retraso, y solo se animan `opacity` y `transform`, que el
+   navegador resuelve sin recalcular el diseño de la página.
+   -------------------------------------------------------------------------- */
+
+.login-page .masthead {
+  animation: drop-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.login-page .hero {
+  animation: fade-in 420ms ease-out 90ms backwards;
+}
+
+.login-page .hero__title,
+.login-page .hero__subtitle {
+  animation: rise 480ms cubic-bezier(0.22, 1, 0.36, 1) 140ms backwards;
+}
+
+.login-page .hero__subtitle {
+  animation-delay: 200ms;
+}
+
+.gate__card {
+  animation: card-in 500ms cubic-bezier(0.22, 1, 0.36, 1) 240ms backwards;
+}
+
+/* Los campos entran después de la tarjeta y uno tras otro, de arriba abajo,
+   siguiendo el orden en que se van a rellenar. */
+.gate__card > * {
+  animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.gate__card > :nth-child(1) { animation-delay: 330ms; }
+.gate__card > :nth-child(2) { animation-delay: 380ms; }
+.gate__card > :nth-child(3) { animation-delay: 430ms; }
+.gate__card > :nth-child(4) { animation-delay: 480ms; }
+.gate__card > :nth-child(5) { animation-delay: 530ms; }
+.gate__card > :nth-child(6) { animation-delay: 580ms; }
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}
+
 /* ==========================================================================
    Adaptación a la pantalla
 
@@ -1061,9 +1153,19 @@ body {
   }
 }
 
+/* Quien pide movimiento reducido recibe la misma información sin recorrido:
+   todo aparece ya colocado, en lugar de desplazarse hasta su sitio. */
 @media (prefers-reduced-motion: reduce) {
-  .matrix__cell,
-  .button--icon svg {
+  .matrix--animated .matrix__cell,
+  .matrix--animated .matrix__caption,
+  .equation__operator,
+  .button--icon svg,
+  .login-page .masthead,
+  .login-page .hero,
+  .login-page .hero__title,
+  .login-page .hero__subtitle,
+  .gate__card,
+  .gate__card > * {
     animation: none;
   }
 

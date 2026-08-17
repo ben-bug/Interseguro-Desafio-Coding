@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Matrix } from '../api';
 import { formatValue, intensity, maxAbsolute } from '../format';
 
@@ -9,11 +10,34 @@ interface MatrixViewProps {
   accent: 'input' | 'q' | 'r';
   decimals: number;
   /**
+   * Posición dentro de la ecuación (0 para A, 1 para Q, 2 para R). Retrasa el
+   * arranque de la cascada para que las tres matrices no aparezcan a la vez,
+   * sino en el orden en que se leen.
+   */
+  order?: number;
+  /**
    * Atenúa los ceros bajo la diagonal principal. Solo se activa en R, donde esos
    * ceros son la consecuencia visible del algoritmo y no un dato más.
    */
   revealTriangle?: boolean;
 }
+
+/** Retraso entre matrices consecutivas de la ecuación. */
+const MATRIX_STAGGER_MS = 190;
+/** Retraso entre antidiagonales sucesivas dentro de una matriz. */
+const DIAGONAL_STEP_MS = 26;
+/** Tope del retraso interno: sin él, una matriz grande tardaría segundos. */
+const MAX_INTERNAL_DELAY_MS = 460;
+/**
+ * A partir de este número de celdas la cascada deja de animarse.
+ *
+ * La API acepta matrices de hasta 256×256, es decir 65 536 celdas: animarlas
+ * todas obligaría al navegador a componer decenas de miles de capas y la
+ * aparición del resultado se volvería más lenta que el propio cálculo. Por
+ * encima del umbral el resultado aparece de golpe, que es lo correcto cuando el
+ * volumen de datos ya es el protagonista.
+ */
+const ANIMATION_CELL_LIMIT = 400;
 
 /**
  * Dibuja una matriz con la notación de corchetes.
@@ -28,15 +52,17 @@ export function MatrixView({
   symbol,
   accent,
   decimals,
+  order = 0,
   revealTriangle = false,
 }: MatrixViewProps) {
   const scale = maxAbsolute(matrix);
   const rows = matrix.length;
   const cols = matrix[0]?.length ?? 0;
+  const animated = rows * cols <= ANIMATION_CELL_LIMIT;
 
   return (
-    <figure className={`matrix matrix--${accent}`}>
-      <figcaption className="matrix__caption">
+    <figure className={`matrix matrix--${accent}${animated ? ' matrix--animated' : ''}`}>
+      <figcaption className="matrix__caption" style={{ animationDelay: `${order * MATRIX_STAGGER_MS}ms` }}>
         <span className="matrix__symbol">{symbol}</span>
         <span className="matrix__dims">
           {rows}×{cols}
@@ -58,19 +84,25 @@ export function MatrixView({
               // ocultarse: la forma triangular se ve, pero el dato sigue ahí.
               const isStructuralZero = revealTriangle && i > j && value === 0;
 
+              const style: CSSProperties = {
+                // La cascada avanza por antidiagonales (i + j) y no fila por
+                // fila: el frente de onda cruza la matriz en diagonal, que es la
+                // misma dirección en la que Householder va dejando los ceros.
+                animationDelay: `${
+                  order * MATRIX_STAGGER_MS +
+                  Math.min((i + j) * DIAGONAL_STEP_MS, MAX_INTERNAL_DELAY_MS)
+                }ms`,
+              };
+              if (!isStructuralZero) {
+                (style as Record<string, unknown>)['--cell-intensity'] = intensity(value, scale);
+              }
+
               return (
                 <span
                   key={`${i}-${j}`}
                   role="cell"
                   className={`matrix__cell${isStructuralZero ? ' matrix__cell--structural' : ''}`}
-                  style={{
-                    // El retraso escalonado por fila evoca el avance del
-                    // algoritmo, que procesa una columna por vez.
-                    animationDelay: `${Math.min(i * 45, 400)}ms`,
-                    ...(isStructuralZero
-                      ? {}
-                      : { '--cell-intensity': intensity(value, scale) } as React.CSSProperties),
-                  }}
+                  style={style}
                   // El valor completo queda accesible sin ocupar la grilla.
                   title={String(value)}
                 >
