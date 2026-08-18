@@ -33,3 +33,6 @@ CLAUDE.md
 
 # Respaldos locales de configuracion: pueden contener secretos
 *.zip
+
+# Notas personales de preparacion, no forman parte de la entrega
+ENTREVISTA.md

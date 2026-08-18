@@ -106,7 +106,7 @@ Propagar el token conserva la identidad de punta a punta y hace que ningún endp
 - El algoritmo se restringe explícitamente a HS256 en ambos servicios. Sin esa lista, un token con `alg: none` podría llegar a aceptarse. Hay un test para ello en cada API.
 - Las credenciales del login se comparan en tiempo constante (`subtle.ConstantTimeCompare`), para que el tiempo de respuesta no filtre el prefijo correcto de la contraseña.
 - El mensaje de error no distingue entre usuario inexistente y contraseña incorrecta, para no permitir enumerar usuarios.
-- El frontend guarda el token en memoria y no en `localStorage`, donde un XSS bastaría para robarlo.
+- El frontend guarda el token en `sessionStorage`: sobrevive a una recarga, pero desaparece al cerrar la pestaña y no se comparte entre pestañas. Conviene ser preciso sobre lo que eso protege: evitar `localStorage` acota la exposición, pero no es una defensa contra XSS, ya que quien ejecute código en la página puede leer ese almacenamiento igual o usar la sesión activa desde ahí. Lo correcto en producción sería un token de acceso en memoria y uno de refresco en una cookie `httpOnly`, lo que exige que la API las emita y rote, y protegerse de CSRF.
 
 ---
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ApiError, factorize, type Matrix, type QRResult } from './api';
+import { clearToken, readToken, storeToken } from './session';
 import { LoginPanel } from './components/LoginPanel';
 import { MatrixEditor } from './components/MatrixEditor';
 import { MatrixView } from './components/MatrixView';
@@ -17,7 +18,10 @@ const INITIAL_MATRIX: Matrix = [
 type Mode = 'full' | 'reduced';
 
 export function App() {
-  const [token, setToken] = useState<string | null>(null);
+  // La sesión se restaura desde sessionStorage, de modo que recargar la página
+  // no obliga a entrar de nuevo. Ver session.ts para el porqué de ese
+  // almacenamiento y sus límites.
+  const [token, setToken] = useState<string | null>(() => readToken());
   const [matrix, setMatrix] = useState<Matrix>(INITIAL_MATRIX);
   const [mode, setMode] = useState<Mode>('full');
   const [decimals, setDecimals] = useState(4);
@@ -28,6 +32,20 @@ export function App() {
   // primera —donde el marco entero aparece— de las siguientes, donde el marco
   // ya está en pantalla y solo cambian los datos.
   const [runCount, setRunCount] = useState(0);
+
+  /**
+   * Único punto por el que cambia la sesión. Centralizarlo evita el fallo
+   * clásico de limpiar el estado y olvidar el almacenamiento, que dejaría un
+   * token muerto sobreviviendo a la recarga.
+   */
+  const applySession = (next: string | null) => {
+    setToken(next);
+    if (next) {
+      storeToken(next);
+    } else {
+      clearToken();
+    }
+  };
 
   const run = async () => {
     if (!token) return;
@@ -44,9 +62,10 @@ export function App() {
           ? cause
           : new ApiError('UNKNOWN_ERROR', 'Ocurrió un error inesperado.'),
       );
-      // Un token vencido no se puede recuperar reintentando: se vuelve al login.
+      // Un token vencido no se puede recuperar reintentando: se vuelve al
+      // login y se descarta también el que estaba guardado.
       if (cause instanceof ApiError && cause.code === 'TOKEN_EXPIRED') {
-        setToken(null);
+        applySession(null);
       }
     } finally {
       setPending(false);
@@ -61,7 +80,7 @@ export function App() {
         <main className="shell shell--login">
           <LoginPanel
             onAuthenticated={(issued) => {
-              setToken(issued);
+              applySession(issued);
               setResult(null);
               setError(null);
             }}
@@ -73,7 +92,7 @@ export function App() {
 
   return (
     <div className="workspace-page">
-      <Masthead onSignOut={() => setToken(null)} />
+      <Masthead onSignOut={() => applySession(null)} />
       <Hero compact />
 
       <main className="shell shell--workspace">
