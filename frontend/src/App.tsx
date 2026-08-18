@@ -24,6 +24,10 @@ export function App() {
   const [result, setResult] = useState<QRResult | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [pending, setPending] = useState(false);
+  // Cuenta las factorizaciones de la sesión. Solo sirve para distinguir la
+  // primera —donde el marco entero aparece— de las siguientes, donde el marco
+  // ya está en pantalla y solo cambian los datos.
+  const [runCount, setRunCount] = useState(0);
 
   const run = async () => {
     if (!token) return;
@@ -32,6 +36,7 @@ export function App() {
 
     try {
       setResult(await factorize(token, matrix, mode));
+      setRunCount((count) => count + 1);
     } catch (cause) {
       setResult(null);
       setError(
@@ -130,7 +135,12 @@ export function App() {
 
           <div className={`panel panel--output${result ? '' : ' panel--placeholder'}`}>
             {result ? (
-              <Result result={result} matrix={matrix} decimals={decimals} />
+              <Result
+                result={result}
+                matrix={matrix}
+                decimals={decimals}
+                isFirstRun={runCount <= 1}
+              />
             ) : (
               <Placeholder />
             )}
@@ -201,10 +211,13 @@ function Result({
   result,
   matrix,
   decimals,
+  isFirstRun,
 }: {
   result: QRResult;
   matrix: Matrix;
   decimals: number;
+  /** True solo en la primera factorización de la sesión. */
+  isFirstRun: boolean;
 }) {
   return (
     // La clave cambia con cada factorización, lo que fuerza a React a montar de
@@ -215,7 +228,10 @@ function Result({
     // Se usa el identificador del request y no el resultado entero, de modo que
     // cambiar los decimales no vuelve a animar: solo se anima cuando hay
     // números nuevos que mostrar.
-    <div className="result" key={result.meta.requestId ?? result.meta.durationMs}>
+    <div
+      className={`result${isFirstRun ? ' result--first' : ''}`}
+      key={result.meta.requestId ?? result.meta.durationMs}
+    >
       <div className="equation">
         <MatrixView matrix={matrix} symbol="A" accent="input" decimals={decimals} order={0} />
         <span className="equation__operator" aria-label="es igual a" style={{ animationDelay: '150ms' }}>
