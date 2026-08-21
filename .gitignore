@@ -34,5 +34,10 @@ CLAUDE.md
 # Respaldos locales de configuracion: pueden contener secretos
 *.zip
 
-# Notas personales de preparacion, no forman parte de la entrega
+# Material personal: no forma parte de la entrega y no debe publicarse.
+# El CV lleva datos de contacto, asi que se bloquea cualquier PDF para que
+# un `git add -A` distraido no lo suba al repositorio publico.
 ENTREVISTA.md
+ENTREVISTA.html
+dev-launcher/ver-notas.py
+*.pdf
